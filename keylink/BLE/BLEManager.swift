@@ -6,6 +6,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     @Published var isConnected = false
     @Published var statusMessage = "Scanning..."
     @Published var lastReaderEvent: String?
+    @Published var batteryLevel: Int?
     
     private var centralManager: CBCentralManager!
     private var peripheral: CBPeripheral?
@@ -40,6 +41,14 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         peripheral.discoverServices([serviceUUID])
     }
     
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        isConnected = false
+        statusMessage = "Disconnected. Reconnecting..."
+        batteryLevel = nil
+        // Automatically attempt to reconnect in the background
+        central.connect(peripheral, options: nil)
+    }
+    
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard let services = peripheral.services else { return }
         for service in services {
@@ -64,6 +73,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         DispatchQueue.main.async {
             if let status = json["status"] as? String {
                 self.statusMessage = status
+            }
+            if let battery = json["battery"] as? Int {
+                self.batteryLevel = battery
             }
             if let msg = json["msg"] as? String, msg == "auth_received" {
                 self.lastReaderEvent = "🔓 Reader authenticated!"

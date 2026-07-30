@@ -10,6 +10,7 @@ struct EmulationView: View {
     @State private var timeRemaining = 30
     @State private var timer: Timer?
     @State private var showSuccess = false
+    @State private var selectedDuration = 30
     
     var body: some View {
         NavigationView {
@@ -86,12 +87,28 @@ struct EmulationView: View {
                     }
                 }
                 
-                // Timer
-                if isEmulating {
-                    Text("\(timeRemaining)s")
-                        .font(.system(size: 64, weight: .thin, design: .rounded))
-                        .foregroundColor(.blue)
-                        .contentTransition(.numericText())
+                // Timer & Duration
+                VStack {
+                    if isEmulating {
+                        Text("\(timeRemaining)s")
+                            .font(.system(size: 64, weight: .thin, design: .rounded))
+                            .foregroundColor(.blue)
+                            .contentTransition(.numericText())
+                    } else {
+                        HStack {
+                            Text("Emulate for:")
+                                .foregroundColor(.secondary)
+                            Picker("Duration", selection: $selectedDuration) {
+                                Text("5s").tag(5)
+                                Text("15s").tag(15)
+                                Text("30s").tag(30)
+                                Text("60s").tag(60)
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(width: 200)
+                        }
+                        .padding(.vertical)
+                    }
                 }
                 
                 Spacer()
@@ -150,6 +167,17 @@ struct EmulationView: View {
                         dismiss() 
                     }
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if let level = ble.batteryLevel {
+                        HStack(spacing: 4) {
+                            Text("\(level)%")
+                                .font(.caption)
+                                .foregroundColor(level > 20 ? .green : .red)
+                            Image(systemName: level > 20 ? "battery.100" : "battery.25")
+                                .foregroundColor(level > 20 ? .green : .red)
+                        }
+                    }
+                }
             }
             .onAppear {
                 // Auto-load card to bridge when view appears
@@ -166,9 +194,9 @@ struct EmulationView: View {
     }
     
     private func startEmulation() {
-        ble.startEmulate(card: card, duration: 30)
+        ble.startEmulate(card: card, duration: selectedDuration)
         isEmulating = true
-        timeRemaining = 30
+        timeRemaining = selectedDuration
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if timeRemaining > 0 {
@@ -189,7 +217,7 @@ struct EmulationView: View {
     private func startDirectEmulation() {
         nfcd.startDirectEmulation(card: card)
         isEmulating = true
-        timeRemaining = 30
+        timeRemaining = selectedDuration
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if timeRemaining > 0 {

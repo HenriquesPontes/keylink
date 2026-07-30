@@ -11,6 +11,9 @@
 
 #include "crapto1.h"
 
+// Hardware Pins
+#define BATTERY_PIN 9
+
 // BLE UUIDs
 #define SERVICE_UUID           "0000180F-0000-1000-8000-00805F9B34FB" // Example Battery service, we should probably use a custom one
 #define CHARACTERISTIC_UUID_RX "00002A19-0000-1000-8000-00805F9B34FB"
@@ -40,6 +43,9 @@ bool cardDataLoaded = false;
 // Crypto1 State
 struct crypto1_state crypto1;
 bool isAuthenticated = false;
+
+// Battery Tracker
+unsigned long lastBatteryCheck = 0;
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -83,10 +89,14 @@ class MyCallbacks: public BLECharacteristicCallbacks {
             }
             Serial.println("Card loaded into memory.");
           } else if (String(cmd) == "emulate") {
+            int duration = 30000;
+            if (doc.containsKey("duration")) {
+                duration = doc["duration"];
+            }
             isEmulating = true;
             isEmulating125 = false;
             isAuthenticated = false;
-            Serial.println("Started 13.56MHz emulation");
+            Serial.printf("Started 13.56MHz emulation (Duration: %d ms)\n", duration);
           } else if (String(cmd) == "emulate_125") {
             isEmulating125 = true;
             isEmulating = false;
@@ -115,6 +125,8 @@ void setup() {
   
   PN532Serial.begin(115200, SERIAL_8N1, 18, 17); // RX=18, TX=17 for ESP32
   nfc.begin();
+  
+  pinMode(BATTERY_PIN, INPUT);
 
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (! versiondata) {
@@ -167,6 +179,23 @@ void loop() {
     if (deviceConnected && !oldDeviceConnected) {
         // do stuff here on connecting
         oldDeviceConnected = deviceConnected;
+    }
+    
+    // Battery Notification Loop (every 5 seconds)
+    if (deviceConnected && (millis() - lastBatteryCheck > 5000)) {
+        lastBatteryCheck = millis();
+        int adc = analogRead(BATTERY_PIN);
+        // Assuming 1/2 voltage divider: 4.2V -> 2.1V (~2600), 3.2V -> 1.6V (~1980)
+        int percentage = map(adc, 1980, 2600, 0, 100);
+        if (percentage < 0) percentage = 0;
+        if (percentage > 100) percentage = 100;
+        
+        DynamicJsonDocument doc(256);
+        doc["battery"] = percentage;
+        String out;
+        serializeJson(doc, out);
+        pTxCharacteristic->setValue(out.c_str());
+        pTxCharacteristic->notify();
     }
     
     if (isEmulating && cardDataLoaded) {
