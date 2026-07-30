@@ -177,7 +177,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
     let onPick: (URL) -> Void
     
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.json, UTType.plainText])
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.json, UTType.plainText, UTType.data])
         picker.allowsMultipleSelection = false
         picker.delegate = context.coordinator
         return picker

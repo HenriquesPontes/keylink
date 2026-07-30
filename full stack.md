@@ -520,52 +520,11 @@ pm3 --> hf mf dump -k hf-mf-[UID]-key.bin
 
 This creates `hf-mf-[UID]-dump.bin` (1024 bytes = 64 blocks × 16 bytes).
 
-## Step 4: Convert to JSON (Python script)
+## Step 4: Get it on your iPhone
 
-Save this as `dump_to_json.py`:
+**Transfer the raw `.bin` dump:** AirDrop the `hf-mf-[UID]-dump.bin` file to your iPhone, or email it.
 
-```python
-import sys
-import json
-
-def convert_dump(path):
-    with open(path, 'rb') as f:
-        data = f.read()
-    
-    if len(data) != 1024:
-        print("Not a MIFARE Classic 1K dump")
-        return
-    
-    sectors = []
-    for block in range(64):
-        sectors.append(list(data[block*16:(block+1)*16]))
-    
-    uid = sectors[0][:4]
-    atqa = sectors[0][4:6]
-    sak = sectors[0][6]
-    
-    out = {
-        "uid": "".join(f"{b:02X}" for b in uid),
-        "atqa": [atqa[1], atqa[0]],  # PN532 expects little-endian
-        "sak": sak,
-        "sectors": sectors
-    }
-    print(json.dumps(out, indent=2))
-
-if __name__ == "__main__":
-    convert_dump(sys.argv[1])
-```
-
-Run:
-```bash
-python3 dump_to_json.py hf-mf-A1B2C3D4-dump.bin > card.json
-```
-
-## Step 5: Get it on your iPhone
-
-**Option A:** Email the JSON to yourself, copy-paste the UID into the app manually. For UID-only readers, that's all you need.
-
-**Option B:** Add a file importer to the iOS app (using `UIDocumentPickerViewController`) to import the JSON directly and send the full sector array over BLE.
+**Import directly into KeyLink:** The iOS app natively parses `.bin` files. There is no need for intermediary Python conversion scripts.
 
 ---
 
@@ -593,7 +552,7 @@ python3 dump_to_json.py hf-mf-A1B2C3D4-dump.bin > card.json
 | **MIFARE Classic sector auth** | ⚠️ Faked (may work) | ✅ Real Crypto1 implementation |
 | **125 kHz gate key** | ❌ Not supported | ⚠️ Needs T5577 or custom TX coil |
 | **MIFARE DESFire** | ❌ No | ❌ Still no (AES hardware needed) |
-| **iOS app import from Proxmark3** | Manual UID entry | Auto JSON import |
+| **iOS app import from Proxmark3** | Manual UID entry | Auto raw `.bin` import |
 | **Multiple cards** | One at a time | Card library with quick switch |
 
 ---

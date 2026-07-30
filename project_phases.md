@@ -39,15 +39,14 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 - Build the `BLEManager` to connect to the ESP32 and send JSON commands.
 - Implement the SwiftData `Card` model.
 - Build the UI: `CardLibraryView` (Saved cards list), `CardImportView` (JSON File/Clipboard parsing), and `EmulationView` (Timer and BLE status).
-- Implement `CardImportManager` to parse Proxmark3 JSON dumps (`hf mf dump -k ...`).
+- Implement `CardImportManager` to natively parse raw `.bin` Proxmark3 dumps (`hf mf dump -k ...`).
 
 ## Phase 5: Proxmark3 to Bridge Data Flow (The Full Loop) ✅ (Completed)
 **Goal:** Perform the end-to-end extraction and emulation process.
 1. Dump the card with Proxmark3 (`hf mf dump`).
-2. Convert the raw `.bin` dump to a structured JSON format (UID, ATQA, SAK, sectors) using a Python script.
-3. AirDrop or copy the JSON to the iPhone.
-4. Import the JSON into the KeyLink iOS app.
-5. Save the card to the local library.
+2. AirDrop or copy the raw `.bin` dump directly to the iPhone.
+3. Import the `.bin` into the KeyLink iOS app.
+4. Save the card to the local library.
 
 ## Phase 6: Real-World Testing
 **Goal:** Test the proxy device on an actual reader (e.g., gym door).
@@ -61,7 +60,7 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 
 ## Future Roadmap (v2.0)
 **Goal:** Address limitations of v1.0 and expand compatibility.
-- **Real Crypto1 Authentication:** Instead of sending fake zeros, implement the full MIFARE Classic Crypto1 state machine for strict readers.
+- **Real Crypto1 Authentication:** ✅ (In Progress) The ESP32 firmware now includes the `crapto1` engine to handle the MIFARE Classic Crypto1 state machine locally for strict readers. Currently stabilizing the handshake.
 - **125 kHz Support:** Add a T5577 chip or a custom TX coil to support older RFID badges (e.g., HID Prox).
-- **Auto JSON Import:** Improve the iOS app to handle raw Proxmark3 files natively without the intermediary Python script.
+- **Auto JSON/Bin Import:** ✅ (Completed) Improve the iOS app to handle raw Proxmark3 files natively without the intermediary Python script.
 - **NFC Driver for iOS 18+ (TrollStore):** Continue research into direct iPhone NFC emulation (TrollNFC equivalent) as a secondary, exploit-based path.

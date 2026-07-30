@@ -1,6 +1,6 @@
-Let's go with **JSON import** first — it unblocks the full workflow from Proxmark3 dump → iPhone → Bridge. Crypto1 is a v2.0 upgrade that only matters if your gym reader checks sector keys (we'll know after the first test).
+Let's go with **Native Binary import** first — it unblocks the full workflow from Proxmark3 `.bin` dump → iPhone → Bridge. Crypto1 is a v2.0 upgrade that is currently being integrated for readers that check sector keys.
 
-Here's the complete iOS JSON import stack:
+Here's the complete iOS Native Binary import stack:
 
 ---
 

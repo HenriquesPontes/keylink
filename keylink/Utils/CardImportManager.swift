@@ -6,14 +6,16 @@ enum ImportError: LocalizedError {
     case invalidUIDFormat
     case invalidSectorCount(expected: Int, got: Int)
     case invalidBlockSize(expected: Int, got: Int)
+    case invalidBinSize(got: Int)
     
     var errorDescription: String? {
         switch self {
-        case .invalidJSON: return "File is not valid JSON"
+        case .invalidJSON: return "File is not valid JSON or BIN format"
         case .missingUID: return "Missing UID field"
         case .invalidUIDFormat: return "UID must be 8 or 14 hex characters"
         case .invalidSectorCount(let exp, let got): return "Expected \(exp) sectors, got \(got)"
         case .invalidBlockSize(let exp, let got): return "Expected \(exp) bytes per block, got \(got)"
+        case .invalidBinSize(let got): return "Invalid .bin file size (expected 1024 or 4096 bytes, got \(got))"
         }
     }
 }
@@ -29,8 +31,19 @@ final class CardImportManager {
     
     func importFromData(_ data: Data) throws -> Card {
         let decoder = JSONDecoder()
-        let imported = try decoder.decode(ProxmarkImport.self, from: data)
+        if let imported = try? decoder.decode(ProxmarkImport.self, from: data) {
+            return try processJSONImport(imported)
+        }
         
+        // If JSON parsing fails, attempt to parse as a raw .bin dump
+        do {
+            return try importFromBin(data)
+        } catch {
+            throw ImportError.invalidJSON
+        }
+    }
+    
+    private func processJSONImport(_ imported: ProxmarkImport) throws -> Card {
         // Validate UID
         let cleanUID = imported.uid.uppercased().replacingOccurrences(of: " ", with: "")
         guard cleanUID.count == 8 || cleanUID.count == 14 else {
@@ -67,6 +80,46 @@ final class CardImportManager {
             sectors: imported.sectors
         )
     }
+    
+    private func importFromBin(_ data: Data) throws -> Card {
+        let size = data.count
+        guard size == 1024 || size == 4096 else {
+            throw ImportError.invalidBinSize(got: size)
+        }
+        
+        // Read block 0 (first 16 bytes)
+        let block0 = [UInt8](data[0..<16])
+        
+        // Extract UID (first 4 bytes for 1K cards)
+        let uidBytes = block0[0..<4]
+        let uidString = uidBytes.map { String(format: "%02X", $0) }.joined()
+        
+        // Provide standard ATQA and SAK for MIFARE Classic 1K if we can't determine it easily
+        // Usually ATQA and SAK can't be purely derived from block 0 of a dump (BCC is there, but ATQA/SAK are negotiated).
+        // Standard MIFARE Classic 1K values: ATQA = 0004, SAK = 08
+        let atqa: [UInt8] = [0x00, 0x04]
+        let sak: UInt8 = 0x08
+        
+        let numBlocks = size / 16
+        var sectors: [[UInt8]] = []
+        
+        for i in 0..<numBlocks {
+            let start = i * 16
+            let blockData = [UInt8](data[start..<(start + 16)])
+            sectors.append(blockData)
+        }
+        
+        let name = "Raw Bin \(uidString.prefix(4))"
+        
+        return Card(
+            name: name,
+            uid: uidString,
+            atqa: atqa,
+            sak: sak,
+            sectors: sectors
+        )
+    }
+
     
     /// Quick-parse just the UID from raw Proxmark3 console output
     func parseUIDFromConsoleOutput(_ text: String) -> String? {

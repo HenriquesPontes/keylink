@@ -27,7 +27,7 @@ KeyLink/
 │   │   └── EmulationTimer.swift            # Countdown ring component
 │   │
 │   ├── Utils/
-│   │   ├── CardImportManager.swift         # JSON parser + validation
+│   │   ├── CardImportManager.swift         # Binary .bin parser + validation
 │   │   ├── HexHelpers.swift                # UInt8 <-> Hex conversions
 │   │   └── DocumentPicker.swift            # UIDocumentPicker wrapper
 │   │
@@ -39,7 +39,7 @@ KeyLink/
 │       └── Preview Assets.xcassets/
 │
 ├── KeyLinkTests/
-│   └── CardImportManagerTests.swift        # Unit tests for JSON parsing
+│   └── CardImportManagerTests.swift        # Unit tests for binary parsing
 │
 └── KeyLinkUITests/
     └── KeyLinkUITests.swift
@@ -59,7 +59,7 @@ KeyLink/
 | `CardRow.swift` | ~60 | Reusable row with UID, full/UID-only badge |
 | `CardImportView.swift` | ~150 | Document picker, clipboard paste, preview, save |
 | `EmulationView.swift` | ~140 | Card visualization, timer, emulate/stop button |
-| `CardImportManager.swift` | ~80 | Parse Proxmark3 JSON, validate UID/sectors |
+| `CardImportManager.swift` | ~80 | Parse Proxmark3 .bin dumps, validate sectors |
 | `HexHelpers.swift` | ~20 | `String.hexToBytes()`, `[UInt8].toHexString()` |
 | `DocumentPicker.swift` | ~40 | `UIViewControllerRepresentable` wrapper |
 
