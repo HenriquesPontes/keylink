@@ -1,5 +1,6 @@
 import Foundation
 import CoreBluetooth
+import Combine
 
 class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var isConnected = false

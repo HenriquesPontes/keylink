@@ -25,7 +25,7 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 - Wire the PN532 (VCC, GND, TXD, RXD) to the ESP32 (3.3V, GND, GPIO17, GPIO18).
 - Wire the LiPo battery and TP4056 charging module.
 
-## Phase 3: ESP32 Firmware Development
+## Phase 3: ESP32 Firmware Development ✅ (Completed)
 **Goal:** Write and flash the firmware to act as a BLE peripheral and NFC emulator.
 - Use Arduino IDE with the `elechouse/PN532` and `ArduinoJson` libraries.
 - Set up a BLE Server with specific UUIDs for Commands and Status notifications.
@@ -41,7 +41,7 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 - Build the UI: `CardLibraryView` (Saved cards list), `CardImportView` (JSON File/Clipboard parsing), and `EmulationView` (Timer and BLE status).
 - Implement `CardImportManager` to parse Proxmark3 JSON dumps (`hf mf dump -k ...`).
 
-## Phase 5: Proxmark3 to Bridge Data Flow (The Full Loop)
+## Phase 5: Proxmark3 to Bridge Data Flow (The Full Loop) ✅ (Completed)
 **Goal:** Perform the end-to-end extraction and emulation process.
 1. Dump the card with Proxmark3 (`hf mf dump`).
 2. Convert the raw `.bin` dump to a structured JSON format (UID, ATQA, SAK, sectors) using a Python script.

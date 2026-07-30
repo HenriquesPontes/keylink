@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import SwiftData
 
 struct CardImportView: View {
     @Environment(\.dismiss) private var dismiss
