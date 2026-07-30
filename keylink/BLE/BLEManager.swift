@@ -124,4 +124,8 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     func stopEmulate() {
         sendCommand(["cmd": "stop"])
     }
+    
+    func enterOTA() {
+        sendCommand(["cmd": "enter_ota"])
+    }
 }

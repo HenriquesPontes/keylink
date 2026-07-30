@@ -11,5 +11,7 @@
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>KeyLink uses Face ID to securely authenticate and access your saved cards.</string>
 </dict>
 </plist>

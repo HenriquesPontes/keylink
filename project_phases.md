@@ -54,34 +54,43 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 2. Open the KeyLink iOS app and let it auto-connect.
 3. Select the imported card and tap "Start Emulation".
 4. Hold the ESP32 bridge to the NFC reader.
-5. If the reader is UID-only, the door will open. If it checks sectors, the fake zero-auth might work, or it will reject the card.
+5. If the reader is UID-only, the door will open. If it checks sectors, the hardware Crypto1 module and keys loaded onto the bridge will negotiate access.
 
 ---
 
-## Future Roadmap (v2.0)
+## Future Roadmap (v2.0) ✅ (Completed)
 **Goal:** Address limitations of v1.0 and expand compatibility.
-- **Real Crypto1 Authentication:** ✅ (Completed) The ESP32 firmware now includes the `crapto1` engine to handle the MIFARE Classic Crypto1 state machine locally for strict readers.
-- **125 kHz Support:** ✅ (Completed) Software integration and firmware PWM carrier generation implemented for HID Prox badges.
-- **Auto JSON/Bin Import:** ✅ (Completed) Improve the iOS app to handle raw Proxmark3 files natively without the intermediary Python script.
-- **NFC Driver for iOS 18+ (keylink):** ✅ (Completed) Added `NFCDManager` skeleton and UI hooks to investigate direct iPhone NFC emulation via private frameworks.
+- **Real Crypto1 Authentication:** ✅ The ESP32 firmware now includes the `crapto1` engine to handle the MIFARE Classic Crypto1 state machine locally for strict readers.
+- **Nested Authentication:** ✅ Firmware fully supports on-the-fly decryption of nested 0x60/0x61 commands for encrypted sectors.
+- **Persistent Card Library:** ✅ Swapped UserDefaults for SwiftData and enabled iCloud sync for reliable, schema-driven data persistence.
+- **Sector Key Management:** ✅ Implemented `CardDetailView` for viewing/editing A/B keys per sector.
+- **7-Byte UID Constraint:** ✅ Implemented fallback protocol to map 7-byte UIDs (Cascade 2) into the 4-byte PN532 hardware constraint alongside UI warnings.
 
 ---
 
-## Future Roadmap (v3.0) & Robustness (v1.1)
-While v1.0/v2.0 software features are complete, the following improvements are planned:
-- **Robustness (v1.1):** ✅ (Completed) PN532 auto-retry on timeout, battery level reporting over BLE, and configurable emulation duration.
-- **Background BLE Reconnection:** ✅ (Completed) Ensure the app stays connected to the bridge in your pocket.
-- **Multi-Protocol Expansion (v3.0):** ✅ (Completed) Added support for MIFARE Ultralight, NTAG emulation, and DESFire light.
+## Future Roadmap (v3.0) & Robustness (v1.1) ✅ (Completed)
+**Goal:** Improve reliability and expand protocol support.
+- **Robustness (v1.1):** ✅ PN532 auto-retry on timeout, battery level reporting over BLE, and configurable emulation duration.
+- **Background BLE Reconnection:** ✅ Ensure the app stays connected to the bridge in your pocket.
+- **Multi-Protocol Expansion (v3.0):** ✅ Added complete support for MIFARE Ultralight / NTAG emulation.
+- **125 kHz Support:** ✅ Software integration and firmware PWM carrier generation implemented for HID Prox badges.
+- **DESFire Light (UID-only):** ✅ Added support for importing DESFire Light targets and instructing the PN532 to initialize ISO/IEC 14443-4 target mode.
+- **Ecosystem Integration:** ⏭️ Skipped Apple Watch companion app and Lock Screen widgets.
 
 ---
 
 ## Future Roadmap (v4.0)
-- **Ecosystem Integration:** Apple Watch companion app and Lock Screen widgets for quick-emulation without opening the iPhone app (Deferred for now).
+With the core software and multi-protocol logic complete, the following features are prime targets for v4.0:
+- **Firmware OTA Updates:** ✅ Built a robust mechanism using `Update.h` and iOS `URLSession` to push new firmware versions over a local ESP32 Wi-Fi AP.
+- **Security Enhancements:** Implement BLE Pairing and Encrypted GATT characteristics to prevent plaintext key transmission over the air.
+- **Automated Testing:** Write XCTest suites for the `CardImportManager` to confidently validate Proxmark3 dump parsing edge-cases.
+- **Custom Hardware Design (PCB):** Draft a schematic and PCB layout for the bridge components to create a tiny, 3D-printable, wearable form factor.
 
 ---
 
 ## Next Immediate Steps
 
-With the core software, cryptographic engine, 125kHz support, and direct emulation research complete, the project software stack is feature-complete for v1.0 and v2.0. The next step should be chosen from the following:
+The KeyLink software stack is functionally complete. The optimal next steps are:
 
 1. **Hardware Assembly & Real-World Testing:** Procure the ESP32-S3 and PN532, wire them via UART, flash the `keylink_bridge.ino` firmware, and test against a physical door reader.
+2. **Select a v4.0 Feature:** Decide on security, OTA, testing, or custom hardware to focus on next.

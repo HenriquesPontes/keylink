@@ -2,12 +2,16 @@
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
+#include <BLESecurity.h>
 #include <BLE2902.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <PN532_HSU.h>
 #include <PN532.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include <Update.h>
 
 #include "crapto1.h"
 
@@ -50,6 +54,49 @@ bool isAuthenticated = false;
 
 // Battery Tracker
 unsigned long lastBatteryCheck = 0;
+
+// OTA Setup
+bool isOTA = false;
+WebServer server(80);
+
+void startOTA() {
+  Serial.println("Starting OTA AP: KeyLink-OTA");
+  WiFi.softAP("KeyLink-OTA", "keylink_update");
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+
+  server.on("/", HTTP_GET, []() {
+    server.send(200, "text/plain", "KeyLink OTA Update Server Ready");
+  });
+
+  server.on("/update", HTTP_POST, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+    ESP.restart();
+  }, []() {
+    HTTPUpload& upload = server.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+      Serial.printf("Update: %s\n", upload.filename.c_str());
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      if (Update.end(true)) {
+        Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+      } else {
+        Update.printError(Serial);
+      }
+    }
+  });
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
 
 void sendAuthNotification() {
     if (deviceConnected && pTxCharacteristic != NULL) {
@@ -156,6 +203,12 @@ class MyCallbacks: public BLECharacteristicCallbacks {
             isEmulating125 = false;
             ledcDetachPin(4); // Stop 125kHz carrier
             Serial.println("Stopped emulation");
+          } else if (String(cmd) == "enter_ota") {
+            isOTA = true;
+            isEmulating = false;
+            isEmulating125 = false;
+            Serial.println("Entering OTA Mode");
+            startOTA();
           }
         } else {
             Serial.println("JSON Parse Error");
@@ -195,6 +248,7 @@ void setup() {
 									);
                       
   pTxCharacteristic->addDescriptor(new BLE2902());
+  pTxCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
 
   BLECharacteristic * pRxCharacteristic = pService->createCharacteristic(
 											 CHARACTERISTIC_UUID_RX,
@@ -202,9 +256,19 @@ void setup() {
 										);
 
   pRxCharacteristic->setCallbacks(new MyCallbacks());
+  pRxCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
 
   // Start the service
   pService->start();
+
+  // Setup BLE Security
+  BLESecurity *pSecurity = new BLESecurity();
+  pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_MITM_BOND);
+  pSecurity->setCapability(ESP_IO_CAP_OUT);
+  pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
+  
+  uint32_t passkey = 123456;
+  esp_ble_gap_set_security_param(ESP_BLE_SM_SET_STATIC_PASSKEY, &passkey, sizeof(uint32_t));
 
   // Start advertising
   pServer->getAdvertising()->start();
@@ -212,6 +276,12 @@ void setup() {
 }
 
 void loop() {
+    if (isOTA) {
+        server.handleClient();
+        delay(2);
+        return;
+    }
+    
     // disconnecting
     if (!deviceConnected && oldDeviceConnected) {
         delay(500); // give the bluetooth stack the chance to get things ready
