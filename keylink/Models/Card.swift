@@ -42,7 +42,7 @@ final class Card {
         }
         
         // Format: A1 B2 C3 D4
-        stride(from: 0, to: uid.count, by: 2).map {
+        return stride(from: 0, to: uid.count, by: 2).map {
             let start = uid.index(uid.startIndex, offsetBy: $0)
             let end = uid.index(start, offsetBy: 2, limitedBy: uid.endIndex) ?? uid.endIndex
             return String(uid[start..<end])
