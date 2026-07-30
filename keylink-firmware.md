@@ -511,7 +511,7 @@ python3 proxmark_to_bridge.py hf-mf-A1B2C3D4-dump.bin -o my_gym_card.json
 - [x] iOS app: connect, load UID, emulate
 - [x] Proxmark3 dump native `.bin` support
 - [x] `.bin` file import in iOS app
-- [ ] Basic card library (name + UID)
+- [x] Basic card library (name + UID)
 
 ### 8.2 v1.1 — Robustness
 - [ ] PN532 auto-retry on `tgInitAsTarget` timeout
@@ -525,15 +525,16 @@ python3 proxmark_to_bridge.py hf-mf-A1B2C3D4-dump.bin -o my_gym_card.json
 - [ ] Nested authentication for encrypted sectors
 - [ ] Support 7-byte UID (Cascade 2)
 - [ ] Sector-level key management (A/B keys per sector)
-- [ ] SwiftData persistent card library
+- [x] SwiftData persistent card library
 - [ ] iCloud sync across devices
 
 ### 8.4 v3.0 — Multi-Protocol
-- [ ] 125 kHz support (T5577 / EM4305 module)
+- [x] 125 kHz support (T5577 / EM4305 module + firmware PWM)
 - [ ] MIFARE Ultralight / NTAG emulation
 - [ ] DESFire light support (UID-only mode)
 - [ ] Apple Watch companion app
 - [ ] Widget / Lock Screen quick-emulate
+- [x] iOS 18+ Direct Emulation Research (NFCDManager)
 
 ---
 
