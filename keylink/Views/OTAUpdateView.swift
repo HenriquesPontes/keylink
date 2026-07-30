@@ -9,7 +9,7 @@ struct OTAUpdateView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "arrow.triangle.2.circlepath")
+            Image("Rotate")
                 .font(.system(size: 60))
                 .foregroundColor(.blue)
                 .padding(.top, 40)
@@ -22,9 +22,9 @@ struct OTAUpdateView: View {
                 Text("Instructions:")
                     .font(.headline)
                 
-                Label("Tap 'Enter OTA Mode' to prepare the bridge.", systemImage: "1.circle.fill")
-                Label("Go to Settings > Wi-Fi and connect to **KeyLink-OTA** (Password: `keylink_update`).", systemImage: "2.circle.fill")
-                Label("Tap 'Select Firmware File' to upload the `.bin` update.", systemImage: "3.circle.fill")
+                Label("1. Tap 'Enter OTA Mode' to prepare the bridge.", image: "ArrowRight")
+                Label("2. Go to Settings > Wi-Fi and connect to **KeyLink-OTA** (Password: `keylink_update`).", image: "ArrowRight")
+                Label("3. Tap 'Select Firmware File' to upload the `.bin` update.", image: "ArrowRight")
             }
             .padding()
             .background(Color(.secondarySystemBackground))

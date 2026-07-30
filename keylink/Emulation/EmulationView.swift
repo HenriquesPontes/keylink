@@ -31,8 +31,9 @@ struct EmulationView: View {
                             .frame(height: 180)
                         
                         VStack(spacing: 12) {
-                            Image(systemName: "wave.3.right.circle.fill")
-                                .font(.system(size: 48))
+                            Image("WifiFull")
+                                .resizable()
+                                .frame(width: 48, height: 48)
                                 .foregroundColor(card.isFullClone ? .green : .orange)
                             
                             Text(card.name)
@@ -66,7 +67,7 @@ struct EmulationView: View {
                     }
                     
                     if let event = ble.lastReaderEvent {
-                        Label(event, systemImage: "checkmark.shield.fill")
+                        Label(event, image: "CheckMark")
                             .foregroundColor(.green)
                             .font(.headline)
                             .transition(.scale.combined(with: .opacity))
@@ -88,7 +89,9 @@ struct EmulationView: View {
                     
                     if card.uid.count > 8 {
                         HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
+                            Image("Warning")
+                                .resizable()
+                                .frame(width: 16, height: 16)
                                 .foregroundColor(.yellow)
                             Text("7-byte UID detected. Hardware limits emulation to a 4-byte random UID.")
                                 .font(.caption2)
@@ -135,7 +138,9 @@ struct EmulationView: View {
                         }
                     } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: isEmulating && !nfcd.isEmulating ? "stop.fill" : "play.fill")
+                            Image(isEmulating && !nfcd.isEmulating ? "Stop" : "Play")
+                                .resizable()
+                                .frame(width: 20, height: 20)
                             Text(isEmulating && !nfcd.isEmulating ? "Stop" : "Emulate (Bridge)")
                         }
                         .font(.headline)
@@ -155,7 +160,9 @@ struct EmulationView: View {
                         }
                     } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: nfcd.isEmulating ? "stop.fill" : "iphone.radiowaves.left.and.right")
+                            Image(nfcd.isEmulating ? "Stop" : "Phone")
+                                .resizable()
+                                .frame(width: 20, height: 20)
                             Text(nfcd.isEmulating ? "Stop" : "Direct Emulate (Jailbreak)")
                         }
                         .font(.headline)
@@ -170,7 +177,9 @@ struct EmulationView: View {
                     if card.type == .mifareClassic && card.isFullClone {
                         NavigationLink(destination: CardDetailView(card: card)) {
                             HStack {
-                                Image(systemName: "key.fill")
+                                Image("Key")
+                                    .resizable()
+                                    .frame(width: 20, height: 20)
                                 Text("Manage Sectors & Keys")
                             }
                             .font(.headline)
@@ -200,8 +209,9 @@ struct EmulationView: View {
                             Text("\(level)%")
                                 .font(.caption)
                                 .foregroundColor(level > 20 ? .green : .red)
-                            Image(systemName: level > 20 ? "battery.100" : "battery.25")
-                                .foregroundColor(level > 20 ? .green : .red)
+                            Image(level > 20 ? "BatteryFull" : "BatteryLow")
+                                .resizable()
+                                .frame(width: 16, height: 16)
                         }
                     }
                 }

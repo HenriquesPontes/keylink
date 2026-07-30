@@ -28,8 +28,9 @@ struct CardImportView: View {
                         showDocumentPicker = true
                     } label: {
                         HStack {
-                            Image(systemName: "doc.badge.arrow.up")
-                                .font(.title2)
+                            Image("Upload")
+                                .resizable()
+                                .frame(width: 24, height: 24)
                             VStack(alignment: .leading) {
                                 Text("Import from File")
                                     .font(.headline)
@@ -38,7 +39,9 @@ struct CardImportView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Image(systemName: "chevron.right")
+                            Image("ChevronRight")
+                                .resizable()
+                                .frame(width: 16, height: 16)
                                 .foregroundColor(.secondary)
                         }
                         .padding()
@@ -58,8 +61,9 @@ struct CardImportView: View {
                         }
                     } label: {
                         HStack {
-                            Image(systemName: "doc.on.clipboard")
-                                .font(.title2)
+                            Image("Copy")
+                                .resizable()
+                                .frame(width: 24, height: 24)
                             VStack(alignment: .leading) {
                                 Text("Paste from Clipboard")
                                     .font(.headline)
@@ -68,7 +72,9 @@ struct CardImportView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Image(systemName: "chevron.right")
+                            Image("ChevronRight")
+                                .resizable()
+                                .frame(width: 16, height: 16)
                                 .foregroundColor(.secondary)
                         }
                         .padding()
@@ -80,8 +86,9 @@ struct CardImportView: View {
                         showManualEntry = true
                     } label: {
                         HStack {
-                            Image(systemName: "keyboard")
-                                .font(.title2)
+                            Image("Keyboard")
+                                .resizable()
+                                .frame(width: 24, height: 24)
                             VStack(alignment: .leading) {
                                 Text("Manual Entry (125kHz)")
                                     .font(.headline)
@@ -90,7 +97,9 @@ struct CardImportView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Image(systemName: "chevron.right")
+                            Image("ChevronRight")
+                                .resizable()
+                                .frame(width: 16, height: 16)
                                 .foregroundColor(.secondary)
                         }
                         .padding()

@@ -14,8 +14,10 @@ struct CardLibraryView: View {
                 if cards.isEmpty {
                     Section {
                         VStack(spacing: 12) {
-                            Image(systemName: "creditcard")
-                                .font(.system(size: 48))
+                            Image("Card")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 48, height: 48)
                                 .foregroundColor(.secondary)
                             Text("No Cards Yet")
                                 .font(.headline)
@@ -43,7 +45,9 @@ struct CardLibraryView: View {
                     Button {
                         showImport = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image("Plus")
+                            .resizable()
+                            .frame(width: 20, height: 20)
                     }
                 }
             }
@@ -70,8 +74,8 @@ struct CardRow: View {
     let card: Card
     
     private var iconName: String {
-        if card.type == .hidProx26 { return "wave.3.left.circle.fill" }
-        return card.isFullClone ? "key.fill" : "wave.3.right"
+        if card.type == .hidProx26 { return "WifiFull" }
+        return card.isFullClone ? "Key" : "WifiMid"
     }
     
     private var iconColor: Color {
@@ -85,7 +89,10 @@ struct CardRow: View {
                 Circle()
                     .fill(iconColor.opacity(0.15))
                     .frame(width: 44, height: 44)
-                Image(systemName: iconName)
+                Image(iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
                     .foregroundColor(iconColor)
             }
             
