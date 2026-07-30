@@ -25,9 +25,7 @@ struct keylinkApp: App {
                 CardLibraryView()
             } else {
                 VStack(spacing: 20) {
-                    Image("Secure")
-                        .resizable()
-                        .frame(width: 64, height: 64)
+                    Image(systemName: "faceid")
                         .font(.system(size: 80))
                         .foregroundColor(.blue)
                     
