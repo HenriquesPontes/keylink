@@ -121,29 +121,19 @@ struct EmulationView: View {
             .onAppear {
                 // Auto-load card to bridge when view appears
                 if ble.isConnected {
-                    ble.loadCard(
-                        uid: card.uid,
-                        atqa: card.atqa,
-                        sak: card.sak,
-                        sectors: card.sectors
-                    )
+                    ble.loadCard(card)
                 }
             }
             .onChange(of: ble.isConnected) { connected in
                 if connected {
-                    ble.loadCard(
-                        uid: card.uid,
-                        atqa: card.atqa,
-                        sak: card.sak,
-                        sectors: card.sectors
-                    )
+                    ble.loadCard(card)
                 }
             }
         }
     }
     
     private func startEmulation() {
-        ble.startEmulate(duration: 30)
+        ble.startEmulate(card: card, duration: 30)
         isEmulating = true
         timeRemaining = 30
         

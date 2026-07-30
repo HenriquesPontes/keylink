@@ -69,14 +69,24 @@ struct CardLibraryView: View {
 struct CardRow: View {
     let card: Card
     
+    private var iconName: String {
+        if card.type == .hidProx26 { return "wave.3.left.circle.fill" }
+        return card.isFullClone ? "key.fill" : "wave.3.right"
+    }
+    
+    private var iconColor: Color {
+        if card.type == .hidProx26 { return .blue }
+        return card.isFullClone ? .green : .orange
+    }
+    
     var body: some View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(card.isFullClone ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
+                    .fill(iconColor.opacity(0.15))
                     .frame(width: 44, height: 44)
-                Image(systemName: card.isFullClone ? "key.fill" : "wave.3.right")
-                    .foregroundColor(card.isFullClone ? .green : .orange)
+                Image(systemName: iconName)
+                    .foregroundColor(iconColor)
             }
             
             VStack(alignment: .leading, spacing: 4) {
@@ -89,7 +99,16 @@ struct CardRow: View {
             
             Spacer()
             
-            if card.isFullClone {
+            if card.type == .hidProx26 {
+                Text("125kHz")
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.blue.opacity(0.15))
+                    .foregroundColor(.blue)
+                    .cornerRadius(8)
+            } else if card.isFullClone {
                 Text("Full")
                     .font(.caption2)
                     .fontWeight(.semibold)

@@ -77,21 +77,27 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         peripheral.writeValue(data, for: char, type: .withResponse)
     }
     
-    func loadCard(uid: String, atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil) {
+    func loadCard(_ card: Card) {
         var payload: [String: Any] = [
             "cmd": "load_card",
-            "uid": uid,
-            "atqa": atqa,
-            "sak": sak
+            "type": card.type.rawValue,
+            "uid": card.uid
         ]
-        if let sectors = sectors {
-            payload["sectors"] = sectors
+        
+        if card.type == .mifareClassic {
+            payload["atqa"] = card.atqa
+            payload["sak"] = card.sak
+            if let sectors = card.sectors {
+                payload["sectors"] = sectors
+            }
         }
+        
         sendCommand(payload)
     }
     
-    func startEmulate(duration: Int = 30) {
-        sendCommand(["cmd": "emulate", "duration": duration * 1000])
+    func startEmulate(card: Card, duration: Int = 30) {
+        let cmdName = card.type == .hidProx26 ? "emulate_125" : "emulate"
+        sendCommand(["cmd": cmdName, "duration": duration * 1000])
     }
     
     func stopEmulate() {

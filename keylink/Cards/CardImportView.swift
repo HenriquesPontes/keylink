@@ -12,6 +12,11 @@ struct CardImportView: View {
     @State private var errorMessage: String?
     @State private var showError = false
     
+    // 125kHz Manual Entry
+    @State private var showManualEntry = false
+    @State private var manualFC: String = ""
+    @State private var manualCN: String = ""
+    
     var onImport: ((Card) -> Void)?
     
     var body: some View {
@@ -70,6 +75,28 @@ struct CardImportView: View {
                         .background(Color(.secondarySystemBackground))
                         .cornerRadius(12)
                     }
+                    
+                    Button {
+                        showManualEntry = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "keyboard")
+                                .font(.title2)
+                            VStack(alignment: .leading) {
+                                Text("Manual Entry (125kHz)")
+                                    .font(.headline)
+                                Text("Enter Facility Code & Card Number")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
                 }
                 .padding(.horizontal)
                 
@@ -92,28 +119,38 @@ struct CardImportView: View {
                                     .font(.system(.body, design: .monospaced))
                             }
                             
-                            HStack {
-                                Text("Type")
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text(card.isFullClone ? "Full Clone (64 sectors)" : "UID Only")
-                                    .foregroundColor(card.isFullClone ? .green : .orange)
-                            }
-                            
-                            HStack {
-                                Text("ATQA")
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text(String(format: "%02X %02X", card.atqa[0], card.atqa[1]))
-                                    .font(.system(.body, design: .monospaced))
-                            }
-                            
-                            HStack {
-                                Text("SAK")
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text(String(format: "%02X", card.sak))
-                                    .font(.system(.body, design: .monospaced))
+                            if card.type == .mifareClassic {
+                                HStack {
+                                    Text("Type")
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text(card.isFullClone ? "Full Clone (64 sectors)" : "UID Only")
+                                        .foregroundColor(card.isFullClone ? .green : .orange)
+                                }
+                                
+                                HStack {
+                                    Text("ATQA")
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text(String(format: "%02X %02X", card.atqa[0], card.atqa[1]))
+                                        .font(.system(.body, design: .monospaced))
+                                }
+                                
+                                HStack {
+                                    Text("SAK")
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text(String(format: "%02X", card.sak))
+                                        .font(.system(.body, design: .monospaced))
+                                }
+                            } else {
+                                HStack {
+                                    Text("Type")
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text("HID Prox (26-bit)")
+                                        .foregroundColor(.blue)
+                                }
                             }
                         }
                         .padding()
@@ -166,6 +203,25 @@ struct CardImportView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage ?? "Unknown error")
+            }
+            .alert("Manual Entry (125kHz)", isPresented: $showManualEntry) {
+                TextField("Facility Code (0-255)", text: $manualFC)
+                    .keyboardType(.numberPad)
+                TextField("Card Number (0-65535)", text: $manualCN)
+                    .keyboardType(.numberPad)
+                Button("Cancel", role: .cancel) { }
+                Button("Add") {
+                    if let fc = Int(manualFC), let cn = Int(manualCN) {
+                        let uidHex = String(format: "%02X%04X", fc, cn)
+                        importedCard = Card(name: "HID Prox", type: .hidProx26, uid: uidHex, facilityCode: fc, cardNumber: cn)
+                        cardName = importedCard?.name ?? ""
+                    } else {
+                        errorMessage = "Invalid Facility Code or Card Number"
+                        showError = true
+                    }
+                }
+            } message: {
+                Text("Enter the Facility Code and Card Number found on the back of the HID Prox badge.")
             }
         }
     }

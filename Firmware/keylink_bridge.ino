@@ -27,7 +27,9 @@ PN532_HSU pn532hsu(PN532Serial);
 PN532 nfc(pn532hsu);
 
 bool isEmulating = false;
+bool isEmulating125 = false;
 uint8_t currentUid[4] = {0x01, 0x02, 0x03, 0x04};
+String currentUidString = "";
 uint8_t currentAtqa[2] = {0x04, 0x00};
 uint8_t currentSak = 0x08;
 
@@ -61,7 +63,12 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         if (!error) {
           const char* cmd = doc["cmd"];
           if (String(cmd) == "load_card") {
-            // Parse sectors
+            const char* type = doc["type"];
+            if (type && String(type) == "hidProx26") {
+                currentUidString = doc["uid"].as<String>();
+                Serial.println("HID Prox loaded.");
+            } else {
+                // Parse sectors for MIFARE
             JsonArray sectors = doc["sectors"];
             if (!sectors.isNull() && sectors.size() == 64) {
                 for (int i = 0; i < 64; i++) {
@@ -73,12 +80,27 @@ class MyCallbacks: public BLECharacteristicCallbacks {
                 cardDataLoaded = true;
                 Serial.println("64 Sectors loaded into memory.");
             }
-            
+            }
+            Serial.println("Card loaded into memory.");
+          } else if (String(cmd) == "emulate") {
             isEmulating = true;
+            isEmulating125 = false;
             isAuthenticated = false;
-            Serial.println("Card loaded and ready to emulate");
+            Serial.println("Started 13.56MHz emulation");
+          } else if (String(cmd) == "emulate_125") {
+            isEmulating125 = true;
+            isEmulating = false;
+            
+            // Setup 125kHz carrier on GPIO 4 using LEDC channel 0
+            ledcSetup(0, 125000, 8); // Channel 0, 125 kHz, 8-bit resolution
+            ledcAttachPin(4, 0);
+            ledcWrite(0, 128); // 50% duty cycle
+            
+            Serial.println("Started 125kHz emulation on GPIO 4");
           } else if (String(cmd) == "stop") {
             isEmulating = false;
+            isEmulating125 = false;
+            ledcDetachPin(4); // Stop 125kHz carrier
             Serial.println("Stopped emulation");
           }
         } else {
@@ -148,7 +170,7 @@ void loop() {
     }
     
     if (isEmulating && cardDataLoaded) {
-        // Initialize as target
+        // Initialize as MIFARE target
         uint8_t command[] = {
             0x8C, // tgInitAsTarget
             0x00, // Mode: passive only
@@ -192,17 +214,33 @@ void loop() {
                     crypto1_init(&crypto1, key);
                     
                     // 4. Generate random nonce (nT) and send
-                    uint8_t nT[4] = {0x11, 0x22, 0x33, 0x44}; // In real app, use esp_random()
+                    uint32_t nt_val = esp_random();
+                    uint8_t nT[4] = { (uint8_t)(nt_val & 0xFF), (uint8_t)((nt_val >> 8) & 0xFF), (uint8_t)((nt_val >> 16) & 0xFF), (uint8_t)((nt_val >> 24) & 0xFF) };
+                    
+                    // Crypto1 initialization feed: UID XOR nT
+                    uint32_t uid32 = currentCardData[0][0] | (currentCardData[0][1] << 8) | (currentCardData[0][2] << 16) | (currentCardData[0][3] << 24);
+                    crypto1_word(&crypto1, uid32 ^ nt_val, 0);
+                    
                     nfc.tgSetData(nT, 4);
                     
                     // 5. Receive reader's encrypted nonce (nR) and answer (aR)
                     rxLen = nfc.tgGetData(rxBuffer, sizeof(rxBuffer));
                     if (rxLen == 8) {
                         // 6. Verify and send aT (encrypted answer)
-                        // (Crypto1 math omitted for brevity, stub assumes success)
+                        uint32_t nr_enc = rxBuffer[0] | (rxBuffer[1] << 8) | (rxBuffer[2] << 16) | (rxBuffer[3] << 24);
+                        
+                        // Feed the encrypted reader nonce into the cipher
+                        crypto1_word(&crypto1, nr_enc, 1);
+                        
+                        // The reader's answer (aR) verification would happen here.
+                        
                         isAuthenticated = true;
                         
-                        uint8_t aT[4] = {0x00, 0x00, 0x00, 0x00}; // Encrypted answer
+                        // Calculate Tag Answer (aT) - in a real implementation this is prng_suc(nt_val)
+                        uint32_t at_plain = 0xdeadbeef; // Placeholder for PRNG successor
+                        uint32_t at_enc = crypto1_word(&crypto1, at_plain, 0);
+                        
+                        uint8_t aT[4] = { (uint8_t)(at_enc & 0xFF), (uint8_t)((at_enc >> 8) & 0xFF), (uint8_t)((at_enc >> 16) & 0xFF), (uint8_t)((at_enc >> 24) & 0xFF) };
                         nfc.tgSetData(aT, 4);
                     }
                 } else if (cmd == 0x30 && isAuthenticated) { // Read
@@ -210,8 +248,7 @@ void loop() {
                     uint8_t resp[16];
                     // Decrypt read request, encrypt response
                     for (int i=0; i<16; i++) {
-                        resp[i] = currentCardData[block][i]; 
-                        // In real app, resp[i] ^= crypto1_byte(&crypto1, ...);
+                        resp[i] = currentCardData[block][i] ^ crypto1_byte(&crypto1, 0x00, 0);
                     }
                     nfc.tgSetData(resp, 16);
                 } else if (cmd == 0x50) { // Halt
@@ -219,6 +256,14 @@ void loop() {
                 }
             }
         }
+    } else if (isEmulating125) {
+        // Modulate the 125kHz carrier here
+        // E.g., Amplitude Shift Keying (ASK) for HID Prox:
+        // ledcWrite(0, 128); // Carrier ON
+        // delayMicroseconds(XX);
+        // ledcWrite(0, 0);   // Carrier OFF
+        // delayMicroseconds(YY);
+        // (Modulation logic goes here based on currentUidString)
     }
     
     delay(10);
