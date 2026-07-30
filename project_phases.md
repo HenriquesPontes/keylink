@@ -63,7 +63,7 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 - **Real Crypto1 Authentication:** ✅ (Completed) The ESP32 firmware now includes the `crapto1` engine to handle the MIFARE Classic Crypto1 state machine locally for strict readers.
 - **125 kHz Support:** Add a T5577 chip or a custom TX coil to support older RFID badges (e.g., HID Prox).
 - **Auto JSON/Bin Import:** ✅ (Completed) Improve the iOS app to handle raw Proxmark3 files natively without the intermediary Python script.
-- **NFC Driver for iOS 18+ (keylink):** Continue research into direct iPhone NFC emulation (TrollNFC equivalent) as a secondary, exploit-based path.
+- **NFC Driver for iOS 18+ (keylink):** Continue research into direct iPhone NFC emulation as a secondary, exploit-based path.
 
 ---
 
