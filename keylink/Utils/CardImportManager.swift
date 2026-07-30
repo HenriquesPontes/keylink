@@ -1,6 +1,6 @@
 import Foundation
 
-enum ImportError: LocalizedError {
+enum ImportError: LocalizedError, Equatable {
     case invalidJSON
     case missingUID
     case invalidUIDFormat
@@ -157,13 +157,13 @@ final class CardImportManager {
     /// Quick-parse just the UID from raw Proxmark3 console output
     func parseUIDFromConsoleOutput(_ text: String) -> String? {
         // Match patterns like: UID: A1 B2 C3 D4  or  [+] UID: A1B2C3D4
-        let pattern = #"UID:\s*([A-Fa-f0-9\s]{11,})"#
+        let pattern = #"UID:\s*([A-Fa-f0-9 ]{8,})"#
         guard let regex = try? NSRegularExpression(pattern: pattern),
               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) else {
             return nil
         }
         if let range = Range(match.range(at: 1), in: text) {
-            let raw = String(text[range]).replacingOccurrences(of: " ", with: "").uppercased()
+            let raw = String(text[range]).components(separatedBy: .whitespaces).joined().uppercased()
             return (raw.count == 8 || raw.count == 14) ? raw : nil
         }
         return nil

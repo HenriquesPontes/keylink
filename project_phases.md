@@ -82,9 +82,9 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 ## Future Roadmap (v4.0)
 With the core software and multi-protocol logic complete, the following features are prime targets for v4.0:
 - **Firmware OTA Updates:** ✅ Built a robust mechanism using `Update.h` and iOS `URLSession` to push new firmware versions over a local ESP32 Wi-Fi AP.
-- **Security Enhancements:** Implement BLE Pairing and Encrypted GATT characteristics to prevent plaintext key transmission over the air.
-- **Automated Testing:** Write XCTest suites for the `CardImportManager` to confidently validate Proxmark3 dump parsing edge-cases.
-- **Custom Hardware Design (PCB):** Draft a schematic and PCB layout for the bridge components to create a tiny, 3D-printable, wearable form factor.
+- **Security Enhancements:** ✅ Implemented `BLESecurity` with MITM protection and a static passkey, plus Encrypted GATT characteristics to prevent plaintext key transmission over the air.
+- **Automated Testing:** ✅ Wrote and successfully passed native XCTest suites for the `CardImportManager` to confidently validate Proxmark3 dump parsing edge-cases.
+- **Custom Hardware Design (PCB):** ✅ Drafted a schematic and PCB layout netlist for the bridge components to create a tiny, 3D-printable, wearable form factor.
 
 ---
 

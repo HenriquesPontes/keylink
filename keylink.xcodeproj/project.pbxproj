@@ -6,8 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EADA61B32F934B6269924F81 /* CardImportManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 368F429289E7598A7FA803BE /* CardImportManagerTests.swift */; };
+		EE705FE714BFAE63D95794F5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CCA595605D7DF27C3829E36 /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1A16690E41815A5B58AB8525 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 84DFD51F301BD94E000615EC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 84DFD526301BD94E000615EC;
+			remoteInfo = keylink;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		368F429289E7598A7FA803BE /* CardImportManagerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CardImportManagerTests.swift; sourceTree = "<group>"; };
 		84DFD527301BD94E000615EC /* keylink.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = keylink.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8CCA595605D7DF27C3829E36 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		C873E8B90DD5D1FD35DAD0B4 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FDBB0A16BF8C55B55C273C5F /* keylinkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = keylinkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -39,14 +58,40 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A335BC3D9B3BECCE0E512E54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE705FE714BFAE63D95794F5 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A99E10BACBB97DB4FE63EA5 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				8CCA595605D7DF27C3829E36 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		67B680431C559F9832F7A95D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1A99E10BACBB97DB4FE63EA5 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		84DFD51E301BD94E000615EC = {
 			isa = PBXGroup;
 			children = (
 				84DFD529301BD94E000615EC /* keylink */,
 				84DFD528301BD94E000615EC /* Products */,
+				67B680431C559F9832F7A95D /* Frameworks */,
+				C1D7597CC9DF2049467397A8 /* keylinkTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -54,8 +99,19 @@
 			isa = PBXGroup;
 			children = (
 				84DFD527301BD94E000615EC /* keylink.app */,
+				FDBB0A16BF8C55B55C273C5F /* keylinkTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C1D7597CC9DF2049467397A8 /* keylinkTests */ = {
+			isa = PBXGroup;
+			children = (
+				368F429289E7598A7FA803BE /* CardImportManagerTests.swift */,
+				C873E8B90DD5D1FD35DAD0B4 /* Info.plist */,
+			);
+			name = keylinkTests;
+			path = keylinkTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -77,11 +133,27 @@
 				84DFD529301BD94E000615EC /* keylink */,
 			);
 			name = keylink;
-			packageProductDependencies = (
-			);
 			productName = keylink;
 			productReference = 84DFD527301BD94E000615EC /* keylink.app */;
 			productType = "com.apple.product-type.application";
+		};
+		9F52E041CFF34ECC24C31828 /* keylinkTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B594E90216F2DCDF0F0B7A87 /* Build configuration list for PBXNativeTarget "keylinkTests" */;
+			buildPhases = (
+				EBE46E74746E0BE3F58A24AF /* Sources */,
+				A335BC3D9B3BECCE0E512E54 /* Frameworks */,
+				3240D85CE321E65BA7A45EB8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FB923A7B6E3C2F7F08FF9267 /* PBXTargetDependency */,
+			);
+			name = keylinkTests;
+			productName = keylinkTests;
+			productReference = FDBB0A16BF8C55B55C273C5F /* keylinkTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -113,11 +185,19 @@
 			projectRoot = "";
 			targets = (
 				84DFD526301BD94E000615EC /* keylink */,
+				9F52E041CFF34ECC24C31828 /* keylinkTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3240D85CE321E65BA7A45EB8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		84DFD525301BD94E000615EC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -135,9 +215,44 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EBE46E74746E0BE3F58A24AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EADA61B32F934B6269924F81 /* CardImportManagerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		FB923A7B6E3C2F7F08FF9267 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = keylink;
+			target = 84DFD526301BD94E000615EC /* keylink */;
+			targetProxy = 1A16690E41815A5B58AB8525 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0000701C3815CB8A36354C48 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
+				INFOPLIST_FILE = keylinkTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keylinkTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/keylink.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/keylink";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		84DFD536301BD94F000615EC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -333,6 +448,23 @@
 			};
 			name = Release;
 		};
+		8B494EF25D665778868D11D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
+				INFOPLIST_FILE = keylinkTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keylinkTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/keylink.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/keylink";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -350,6 +482,15 @@
 			buildConfigurations = (
 				84DFD536301BD94F000615EC /* Debug */,
 				84DFD537301BD94F000615EC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B594E90216F2DCDF0F0B7A87 /* Build configuration list for PBXNativeTarget "keylinkTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0000701C3815CB8A36354C48 /* Release */,
+				8B494EF25D665778868D11D4 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
