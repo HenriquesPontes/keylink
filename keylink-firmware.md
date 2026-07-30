@@ -522,18 +522,18 @@ python3 proxmark_to_bridge.py hf-mf-A1B2C3D4-dump.bin -o my_gym_card.json
 
 ### 8.3 v2.0 — Full MIFARE Classic
 - [x] Crypto1 PRNG + authentication state machine
-- [ ] Nested authentication for encrypted sectors
-- [ ] Support 7-byte UID (Cascade 2)
-- [ ] Sector-level key management (A/B keys per sector)
+- [x] Nested authentication for encrypted sectors
+- [x] Support 7-byte UID (Cascade 2)
+- [x] Sector-level key management (A/B keys per sector)
 - [x] SwiftData persistent card library
-- [ ] iCloud sync across devices
+- [x] iCloud sync across devices
 
 ### 8.4 v3.0 — Multi-Protocol
 - [x] 125 kHz support (T5577 / EM4305 module + firmware PWM)
 - [x] MIFARE Ultralight / NTAG emulation
-- [ ] DESFire light support (UID-only mode)
-- [ ] Apple Watch companion app
-- [ ] Widget / Lock Screen quick-emulate
+- [x] DESFire light support (UID-only mode)
+- [ ] ~~Apple Watch companion app~~ (Skipped)
+- [ ] ~~Widget / Lock Screen quick-emulate~~ (Skipped)
 - [x] iOS 18+ Direct Emulation Research (NFCDManager)
 
 ---

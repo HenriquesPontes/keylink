@@ -14,7 +14,7 @@ struct CardLibraryView: View {
                 if cards.isEmpty {
                     Section {
                         VStack(spacing: 12) {
-                            Image(systemName: "creditcard.and.key")
+                            Image(systemName: "creditcard")
                                 .font(.system(size: 48))
                                 .foregroundColor(.secondary)
                             Text("No Cards Yet")

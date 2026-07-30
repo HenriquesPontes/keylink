@@ -5,15 +5,16 @@ enum CardType: String, Codable {
     case mifareClassic
     case hidProx26
     case mifareUltralight
+    case desfireLight
 }
 
 @Model
 final class Card {
-    @Attribute(.unique) var id: UUID
-    var name: String
-    var uid: String          // Hex, uppercase, no spaces
-    var atqa: [UInt8]        // 2 bytes
-    var sak: UInt8
+    var id: UUID = UUID()
+    var name: String = ""
+    var uid: String = ""          // Hex, uppercase, no spaces
+    var atqa: [UInt8] = []        // 2 bytes
+    var sak: UInt8 = 0
     var sectors: [[UInt8]]?  // nil = UID-only
     var pages: [[UInt8]]?    // Ultralight/NTAG (4 bytes per page)
     
@@ -22,7 +23,7 @@ final class Card {
     var facilityCode: Int?
     var cardNumber: Int?
     
-    var createdAt: Date
+    var createdAt: Date = Date()
     
     init(name: String, type: CardType = .mifareClassic, uid: String = "", atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil, pages: [[UInt8]]? = nil, facilityCode: Int? = nil, cardNumber: Int? = nil) {
         self.id = UUID()

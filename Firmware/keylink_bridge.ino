@@ -106,6 +106,16 @@ class MyCallbacks: public BLECharacteristicCallbacks {
                             Serial.println("Ultralight Pages loaded into memory.");
                         }
                     }
+                } else if (currentType == "desfireLight") {
+                    // DESFire Light (UID only)
+                    currentUidString = doc["uid"].as<String>();
+                    // Convert hex string to byte array
+                    int len = currentUidString.length();
+                    for(int i = 0; i < len / 2 && i < 7; i++) {
+                        String byteString = currentUidString.substring(i*2, i*2+2);
+                        currentUid[i] = (uint8_t) strtol(byteString.c_str(), NULL, 16);
+                    }
+                    Serial.println("DESFire Light (UID-only) loaded.");
                 } else {
                     // Parse sectors for MIFARE Classic
                     JsonArray sectors = doc["sectors"];
@@ -254,6 +264,15 @@ void loop() {
             command[4] = currentUlData[0][0];
             command[5] = currentUlData[0][1];
             command[6] = currentUlData[0][2];
+        } else if (currentType == "desfireLight") {
+            command[2] = 0x44; // ATQA
+            command[3] = 0x03;
+            command[7] = 0x20; // SAK (ISO/IEC 14443-4)
+            
+            // Set first 3 bytes of UID
+            command[4] = currentUid[0];
+            command[5] = currentUid[1];
+            command[6] = currentUid[2];
         } else {
             // Copy real UID if available
             command[4] = currentCardData[0][0];
@@ -269,7 +288,10 @@ void loop() {
             int rxLen = nfc.tgGetData(rxBuffer, sizeof(rxBuffer));
                     if (rxLen > 0) {
                         uint8_t cmd = rxBuffer[0];
-                        if (currentType == "mifareUltralight") {
+                        if (currentType == "desfireLight") {
+                            // UID-only mode: Ignore ISO-DEP APDU commands
+                            Serial.println("Received APDU, ignoring (UID-only mode)");
+                        } else if (currentType == "mifareUltralight") {
                             if (cmd == 0x30) { // READ
                                 uint8_t page = rxBuffer[1];
                                 uint8_t resp[16];
@@ -290,28 +312,52 @@ void loop() {
                             }
                         } else {
                             // Classic Logic
-                            if (cmd == 0x60 || cmd == 0x61) { // Auth A or Auth B
-                                Serial.println("Auth requested");
+                            uint8_t decCmd = cmd;
+                            uint8_t decBlock = rxBuffer[1];
+                            
+                            if (isAuthenticated) {
+                                // Decrypt command and block (advances cipher state by 2 bytes)
+                                decCmd = cmd ^ crypto1_byte(&crypto1, 0x00, 0);
+                                decBlock = rxBuffer[1] ^ crypto1_byte(&crypto1, 0x00, 0);
+                                // Skip the 2 CRC bytes sent by the reader to align cipher state for our response
+                                if (rxLen >= 4) {
+                                    crypto1_byte(&crypto1, 0x00, 0);
+                                    crypto1_byte(&crypto1, 0x00, 0);
+                                }
+                            }
+                            
+                            if (decCmd == 0x60 || decCmd == 0x61) { // Auth A or Auth B (including Nested Auth)
+                                if (isAuthenticated) {
+                                    Serial.println("Nested Auth requested");
+                                } else {
+                                    Serial.println("Auth requested");
+                                }
                                 sendAuthNotification();
                                 // 1. Extract block number
-                                uint8_t block = rxBuffer[1];
+                                uint8_t block = decBlock;
                                 uint8_t sector = block / 4;
                                 
                                 // 2. Get key from sector trailer (block 3 of the sector)
-                                // Key A is first 6 bytes, Key B is last 6 bytes
                                 uint64_t key = 0;
-                                if (cmd == 0x60) {
+                                if (decCmd == 0x60) {
                                     for(int i=0; i<6; i++) key = (key << 8) | currentCardData[sector * 4 + 3][i];
                                 } else {
                                     for(int i=10; i<16; i++) key = (key << 8) | currentCardData[sector * 4 + 3][i];
                                 }
                                 
-                                // 3. Init Crypto1
-                                crypto1_init(&crypto1, key);
-                                
-                                // 4. Generate random nonce (nT) and send
+                                // 3. Generate random nonce (nT)
                                 uint32_t nt_val = esp_random();
                                 uint8_t nT[4] = { (uint8_t)(nt_val & 0xFF), (uint8_t)((nt_val >> 8) & 0xFF), (uint8_t)((nt_val >> 16) & 0xFF), (uint8_t)((nt_val >> 24) & 0xFF) };
+                                
+                                // For nested auth, nT is encrypted with the OLD session key before re-init
+                                if (isAuthenticated) {
+                                    for (int i=0; i<4; i++) {
+                                        nT[i] ^= crypto1_byte(&crypto1, 0x00, 0);
+                                    }
+                                }
+                                
+                                // 4. Init Crypto1 (Reset state with new key)
+                                crypto1_init(&crypto1, key);
                                 
                                 // Crypto1 initialization feed: UID XOR nT
                                 uint32_t uid32 = currentCardData[0][0] | (currentCardData[0][1] << 8) | (currentCardData[0][2] << 16) | (currentCardData[0][3] << 24);
@@ -328,26 +374,24 @@ void loop() {
                                     // Feed the encrypted reader nonce into the cipher
                                     crypto1_word(&crypto1, nr_enc, 1);
                                     
-                                    // The reader's answer (aR) verification would happen here.
-                                    
                                     isAuthenticated = true;
                                     
-                                    // Calculate Tag Answer (aT) - in a real implementation this is prng_suc(nt_val)
-                                    uint32_t at_plain = 0xdeadbeef; // Placeholder for PRNG successor
+                                    // Calculate Tag Answer (aT) - placeholder for PRNG successor
+                                    uint32_t at_plain = 0xdeadbeef; 
                                     uint32_t at_enc = crypto1_word(&crypto1, at_plain, 0);
                                     
                                     uint8_t aT[4] = { (uint8_t)(at_enc & 0xFF), (uint8_t)((at_enc >> 8) & 0xFF), (uint8_t)((at_enc >> 16) & 0xFF), (uint8_t)((at_enc >> 24) & 0xFF) };
                                     nfc.tgSetData(aT, 4);
                                 }
-                            } else if (cmd == 0x30 && isAuthenticated) { // Read
-                                uint8_t block = rxBuffer[1];
+                            } else if (decCmd == 0x30 && isAuthenticated) { // Read
+                                uint8_t block = decBlock;
                                 uint8_t resp[16];
-                                // Decrypt read request, encrypt response
+                                // Encrypt response using the advanced cipher state
                                 for (int i=0; i<16; i++) {
                                     resp[i] = currentCardData[block][i] ^ crypto1_byte(&crypto1, 0x00, 0);
                                 }
                                 nfc.tgSetData(resp, 16);
-                            } else if (cmd == 0x50) { // Halt
+                            } else if (decCmd == 0x50) { // Halt
                                 isAuthenticated = false;
                             }
                         }

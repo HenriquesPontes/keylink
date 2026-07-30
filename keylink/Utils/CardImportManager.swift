@@ -72,11 +72,22 @@ final class CardImportManager {
         // Derive name from filename or use UID
         let name = "Card \(cleanUID.prefix(4))"
         
+        let atqa = imported.atqa ?? [0x00, 0x04]
+        let sak = imported.sak ?? 0x08
+        
+        var cardType: CardType = .mifareClassic
+        if atqa == [0x44, 0x03] && sak == 0x20 {
+            cardType = .desfireLight
+        } else if atqa == [0x44, 0x00] && sak == 0x00 {
+            cardType = .mifareUltralight
+        }
+        
         return Card(
             name: name,
+            type: cardType,
             uid: cleanUID,
-            atqa: imported.atqa ?? [0x00, 0x04],
-            sak: imported.sak ?? 0x08,
+            atqa: atqa,
+            sak: sak,
             sectors: imported.sectors
         )
     }

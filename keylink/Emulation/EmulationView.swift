@@ -85,6 +85,18 @@ struct EmulationView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+                    
+                    if card.uid.count > 8 {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.yellow)
+                            Text("7-byte UID detected. Hardware limits emulation to a 4-byte random UID.")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal)
+                    }
                 }
                 
                 // Timer & Duration
@@ -154,6 +166,21 @@ struct EmulationView: View {
                         .cornerRadius(16)
                     }
                     .disabled(isEmulating && !nfcd.isEmulating)
+                    
+                    if card.type == .mifareClassic && card.isFullClone {
+                        NavigationLink(destination: CardDetailView(card: card)) {
+                            HStack {
+                                Image(systemName: "key.fill")
+                                Text("Manage Sectors & Keys")
+                            }
+                            .font(.headline)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .foregroundColor(.primary)
+                            .cornerRadius(16)
+                        }
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 32)

@@ -109,6 +109,8 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             if let pages = card.pages {
                 payload["pages"] = pages
             }
+        } else if card.type == .desfireLight {
+            // DESFire Light is UID-only in our implementation for now, so no payload addition
         }
         
         sendCommand(payload)
