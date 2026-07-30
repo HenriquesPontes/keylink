@@ -1,10 +1,3 @@
-//
-//  keylinkApp.swift
-//  keylink
-//
-//  Created by Henriques on 7/30/26.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -12,7 +5,7 @@ import SwiftData
 struct keylinkApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Card.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,7 +18,7 @@ struct keylinkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CardLibraryView()
         }
         .modelContainer(sharedModelContainer)
     }
