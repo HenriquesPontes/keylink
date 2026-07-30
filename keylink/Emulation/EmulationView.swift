@@ -4,6 +4,7 @@ struct EmulationView: View {
     let card: Card
     @Environment(\.dismiss) private var dismiss
     @StateObject private var ble = BLEManager()
+    @StateObject private var nfcd = NFCDManager()
     
     @State private var isEmulating = false
     @State private var timeRemaining = 30
@@ -73,6 +74,16 @@ struct EmulationView: View {
                     Text(ble.statusMessage)
                         .font(.caption)
                         .foregroundColor(.gray)
+                    
+                    // NFCD Status
+                    HStack {
+                        Circle()
+                            .fill(nfcd.statusMessage.contains("loaded") ? Color.green : Color.orange)
+                            .frame(width: 10, height: 10)
+                        Text("NFCD: \(nfcd.statusMessage)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 // Timer
@@ -85,26 +96,48 @@ struct EmulationView: View {
                 
                 Spacer()
                 
-                // Action button
-                Button {
-                    if isEmulating {
-                        stopEmulation()
-                    } else {
-                        startEmulation()
+                // Action buttons
+                VStack(spacing: 16) {
+                    Button {
+                        if isEmulating {
+                            stopEmulation()
+                        } else {
+                            startEmulation()
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: isEmulating && !nfcd.isEmulating ? "stop.fill" : "play.fill")
+                            Text(isEmulating && !nfcd.isEmulating ? "Stop" : "Emulate (Bridge)")
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(isEmulating && !nfcd.isEmulating ? Color.red : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
                     }
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: isEmulating ? "stop.fill" : "play.fill")
-                        Text(isEmulating ? "Stop" : "Emulate")
+                    .disabled(!ble.isConnected || nfcd.isEmulating)
+                    
+                    Button {
+                        if nfcd.isEmulating {
+                            stopDirectEmulation()
+                        } else {
+                            startDirectEmulation()
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: nfcd.isEmulating ? "stop.fill" : "iphone.radiowaves.left.and.right")
+                            Text(nfcd.isEmulating ? "Stop" : "Direct Emulate (Jailbreak)")
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(nfcd.isEmulating ? Color.red : Color.purple)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
                     }
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(isEmulating ? Color.red : Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
+                    .disabled(isEmulating && !nfcd.isEmulating)
                 }
-                .disabled(!ble.isConnected)
                 .padding(.horizontal)
                 .padding(.bottom, 32)
             }
@@ -148,6 +181,27 @@ struct EmulationView: View {
     
     private func stopEmulation() {
         ble.stopEmulate()
+        isEmulating = false
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func startDirectEmulation() {
+        nfcd.startDirectEmulation(card: card)
+        isEmulating = true
+        timeRemaining = 30
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+            } else {
+                stopDirectEmulation()
+            }
+        }
+    }
+    
+    private func stopDirectEmulation() {
+        nfcd.stopDirectEmulation()
         isEmulating = false
         timer?.invalidate()
         timer = nil
