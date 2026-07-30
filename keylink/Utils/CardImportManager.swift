@@ -15,7 +15,7 @@ enum ImportError: LocalizedError {
         case .invalidUIDFormat: return "UID must be 8 or 14 hex characters"
         case .invalidSectorCount(let exp, let got): return "Expected \(exp) sectors, got \(got)"
         case .invalidBlockSize(let exp, let got): return "Expected \(exp) bytes per block, got \(got)"
-        case .invalidBinSize(let got): return "Invalid .bin file size (expected 1024 or 4096 bytes, got \(got))"
+        case .invalidBinSize(let got): return "Invalid .bin file size (expected 64, 192, 540, 1024, or 4096 bytes, got \(got))"
         }
     }
 }
@@ -83,41 +83,63 @@ final class CardImportManager {
     
     private func importFromBin(_ data: Data) throws -> Card {
         let size = data.count
-        guard size == 1024 || size == 4096 else {
+        
+        // MIFARE Classic: 1024 (1K) or 4096 (4K)
+        if size == 1024 || size == 4096 {
+            let block0 = [UInt8](data[0..<16])
+            let uidBytes = block0[0..<4]
+            let uidString = uidBytes.map { String(format: "%02X", $0) }.joined()
+            
+            let atqa: [UInt8] = [0x00, 0x04]
+            let sak: UInt8 = 0x08
+            
+            let numBlocks = size / 16
+            var sectors: [[UInt8]] = []
+            
+            for i in 0..<numBlocks {
+                let start = i * 16
+                let blockData = [UInt8](data[start..<(start + 16)])
+                sectors.append(blockData)
+            }
+            
+            return Card(
+                name: "MIFARE Classic \(uidString.prefix(4))",
+                type: .mifareClassic,
+                uid: uidString,
+                atqa: atqa,
+                sak: sak,
+                sectors: sectors
+            )
+        } 
+        // MIFARE Ultralight / NTAG: 64, 192, or 540 bytes
+        else if size == 64 || size == 192 || size == 540 {
+            // Read page 0 and 1 for 7-byte UID. (Byte 0-2 from page 0, Byte 0-3 from page 1)
+            let uidBytes = [UInt8](data[0..<3]) + [UInt8](data[4..<8])
+            let uidString = uidBytes.map { String(format: "%02X", $0) }.joined()
+            
+            let atqa: [UInt8] = [0x44, 0x00] // Ultralight standard
+            let sak: UInt8 = 0x00            // Ultralight standard
+            
+            let numPages = size / 4
+            var pages: [[UInt8]] = []
+            
+            for i in 0..<numPages {
+                let start = i * 4
+                let pageData = [UInt8](data[start..<(start + 4)])
+                pages.append(pageData)
+            }
+            
+            return Card(
+                name: "Ultralight/NTAG \(uidString.prefix(4))",
+                type: .mifareUltralight,
+                uid: uidString,
+                atqa: atqa,
+                sak: sak,
+                pages: pages
+            )
+        } else {
             throw ImportError.invalidBinSize(got: size)
         }
-        
-        // Read block 0 (first 16 bytes)
-        let block0 = [UInt8](data[0..<16])
-        
-        // Extract UID (first 4 bytes for 1K cards)
-        let uidBytes = block0[0..<4]
-        let uidString = uidBytes.map { String(format: "%02X", $0) }.joined()
-        
-        // Provide standard ATQA and SAK for MIFARE Classic 1K if we can't determine it easily
-        // Usually ATQA and SAK can't be purely derived from block 0 of a dump (BCC is there, but ATQA/SAK are negotiated).
-        // Standard MIFARE Classic 1K values: ATQA = 0004, SAK = 08
-        let atqa: [UInt8] = [0x00, 0x04]
-        let sak: UInt8 = 0x08
-        
-        let numBlocks = size / 16
-        var sectors: [[UInt8]] = []
-        
-        for i in 0..<numBlocks {
-            let start = i * 16
-            let blockData = [UInt8](data[start..<(start + 16)])
-            sectors.append(blockData)
-        }
-        
-        let name = "Raw Bin \(uidString.prefix(4))"
-        
-        return Card(
-            name: name,
-            uid: uidString,
-            atqa: atqa,
-            sak: sak,
-            sectors: sectors
-        )
     }
 
     

@@ -514,11 +514,11 @@ python3 proxmark_to_bridge.py hf-mf-A1B2C3D4-dump.bin -o my_gym_card.json
 - [x] Basic card library (name + UID)
 
 ### 8.2 v1.1 — Robustness
-- [ ] PN532 auto-retry on `tgInitAsTarget` timeout
-- [ ] Battery level reporting over BLE
-- [ ] Emulation duration configurable (5s–60s)
-- [ ] Haptic feedback on successful reader detection
-- [ ] Background BLE reconnection
+- [x] PN532 auto-retry on `tgInitAsTarget` timeout
+- [x] Battery level reporting over BLE
+- [x] Emulation duration configurable (5s–60s)
+- [x] Haptic feedback on successful reader detection
+- [x] Background BLE reconnection
 
 ### 8.3 v2.0 — Full MIFARE Classic
 - [x] Crypto1 PRNG + authentication state machine
@@ -530,7 +530,7 @@ python3 proxmark_to_bridge.py hf-mf-A1B2C3D4-dump.bin -o my_gym_card.json
 
 ### 8.4 v3.0 — Multi-Protocol
 - [x] 125 kHz support (T5577 / EM4305 module + firmware PWM)
-- [ ] MIFARE Ultralight / NTAG emulation
+- [x] MIFARE Ultralight / NTAG emulation
 - [ ] DESFire light support (UID-only mode)
 - [ ] Apple Watch companion app
 - [ ] Widget / Lock Screen quick-emulate

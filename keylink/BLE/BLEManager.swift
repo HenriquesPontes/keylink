@@ -1,6 +1,7 @@
 import Foundation
 import CoreBluetooth
 import Combine
+import UIKit
 
 class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var isConnected = false
@@ -79,6 +80,8 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             }
             if let msg = json["msg"] as? String, msg == "auth_received" {
                 self.lastReaderEvent = "🔓 Reader authenticated!"
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
             }
         }
     }
@@ -101,6 +104,10 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             payload["sak"] = card.sak
             if let sectors = card.sectors {
                 payload["sectors"] = sectors
+            }
+        } else if card.type == .mifareUltralight {
+            if let pages = card.pages {
+                payload["pages"] = pages
             }
         }
         

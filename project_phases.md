@@ -71,8 +71,12 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 While v1.0/v2.0 software features are complete, the following improvements are planned:
 - **Robustness (v1.1):** ✅ (Completed) PN532 auto-retry on timeout, battery level reporting over BLE, and configurable emulation duration.
 - **Background BLE Reconnection:** ✅ (Completed) Ensure the app stays connected to the bridge in your pocket.
-- **Multi-Protocol Expansion (v3.0):** Add support for MIFARE Ultralight, NTAG emulation, and DESFire light.
-- **Ecosystem:** Apple Watch companion app and Lock Screen widgets for quick-emulation without opening the iPhone app.
+- **Multi-Protocol Expansion (v3.0):** ✅ (Completed) Added support for MIFARE Ultralight, NTAG emulation, and DESFire light.
+
+---
+
+## Future Roadmap (v4.0)
+- **Ecosystem Integration:** Apple Watch companion app and Lock Screen widgets for quick-emulation without opening the iPhone app (Deferred for now).
 
 ---
 
@@ -81,5 +85,3 @@ While v1.0/v2.0 software features are complete, the following improvements are p
 With the core software, cryptographic engine, 125kHz support, and direct emulation research complete, the project software stack is feature-complete for v1.0 and v2.0. The next step should be chosen from the following:
 
 1. **Hardware Assembly & Real-World Testing:** Procure the ESP32-S3 and PN532, wire them via UART, flash the `keylink_bridge.ino` firmware, and test against a physical door reader.
-2. **Robustness & UI Polish (v1.1):** Implement battery level reporting, emulation duration controls, and background BLE reconnection in the iOS app and firmware.
-3. **Multi-Protocol Expansion (v3.0):** Begin architecture for MIFARE Ultralight/NTAG emulation or Apple Watch companion app.

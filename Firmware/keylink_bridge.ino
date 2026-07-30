@@ -38,7 +38,11 @@ uint8_t currentSak = 0x08;
 
 // MIFARE Classic 1K holds 64 blocks of 16 bytes
 uint8_t currentCardData[64][16]; 
+// MIFARE Ultralight holds up to 135 pages of 4 bytes (NTAG215)
+uint8_t currentUlData[135][4];
+
 bool cardDataLoaded = false;
+String currentType = "";
 
 // Crypto1 State
 struct crypto1_state crypto1;
@@ -46,6 +50,18 @@ bool isAuthenticated = false;
 
 // Battery Tracker
 unsigned long lastBatteryCheck = 0;
+
+void sendAuthNotification() {
+    if (deviceConnected && pTxCharacteristic != NULL) {
+        DynamicJsonDocument doc(256);
+        doc["status"] = "reader_cmd";
+        doc["msg"] = "auth_received";
+        String out;
+        serializeJson(doc, out);
+        pTxCharacteristic->setValue(out.c_str());
+        pTxCharacteristic->notify();
+    }
+}
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -70,22 +86,40 @@ class MyCallbacks: public BLECharacteristicCallbacks {
           const char* cmd = doc["cmd"];
           if (String(cmd) == "load_card") {
             const char* type = doc["type"];
-            if (type && String(type) == "hidProx26") {
-                currentUidString = doc["uid"].as<String>();
-                Serial.println("HID Prox loaded.");
-            } else {
-                // Parse sectors for MIFARE
-            JsonArray sectors = doc["sectors"];
-            if (!sectors.isNull() && sectors.size() == 64) {
-                for (int i = 0; i < 64; i++) {
-                    JsonArray block = sectors[i];
-                    for (int j = 0; j < 16; j++) {
-                        currentCardData[i][j] = block[j].as<uint8_t>();
+            if (type) {
+                currentType = String(type);
+                if (currentType == "hidProx26") {
+                    currentUidString = doc["uid"].as<String>();
+                    Serial.println("HID Prox loaded.");
+                } else if (currentType == "mifareUltralight") {
+                    JsonArray pages = doc["pages"];
+                    if (!pages.isNull()) {
+                        int numPages = pages.size();
+                        if (numPages <= 135) {
+                            for (int i = 0; i < numPages; i++) {
+                                JsonArray page = pages[i];
+                                for (int j = 0; j < 4; j++) {
+                                    currentUlData[i][j] = page[j].as<uint8_t>();
+                                }
+                            }
+                            cardDataLoaded = true;
+                            Serial.println("Ultralight Pages loaded into memory.");
+                        }
+                    }
+                } else {
+                    // Parse sectors for MIFARE Classic
+                    JsonArray sectors = doc["sectors"];
+                    if (!sectors.isNull() && sectors.size() == 64) {
+                        for (int i = 0; i < 64; i++) {
+                            JsonArray block = sectors[i];
+                            for (int j = 0; j < 16; j++) {
+                                currentCardData[i][j] = block[j].as<uint8_t>();
+                            }
+                        }
+                        cardDataLoaded = true;
+                        Serial.println("64 Sectors loaded into memory.");
                     }
                 }
-                cardDataLoaded = true;
-                Serial.println("64 Sectors loaded into memory.");
-            }
             }
             Serial.println("Card loaded into memory.");
           } else if (String(cmd) == "emulate") {
@@ -211,10 +245,21 @@ void loop() {
             0, 0 // length
         };
         
-        // Copy real UID if available
-        command[4] = currentCardData[0][0];
-        command[5] = currentCardData[0][1];
-        command[6] = currentCardData[0][2];
+        if (currentType == "mifareUltralight") {
+            command[2] = 0x44; // ATQA
+            command[3] = 0x00;
+            command[7] = 0x00; // SAK
+            
+            // Set first 3 bytes of UID
+            command[4] = currentUlData[0][0];
+            command[5] = currentUlData[0][1];
+            command[6] = currentUlData[0][2];
+        } else {
+            // Copy real UID if available
+            command[4] = currentCardData[0][0];
+            command[5] = currentCardData[0][1];
+            command[6] = currentCardData[0][2];
+        }
         
         // This is a blocking call until a reader connects
         if (nfc.tgInitAsTarget(command, sizeof(command), 1000)) {
@@ -222,68 +267,91 @@ void loop() {
             
             uint8_t rxBuffer[64];
             int rxLen = nfc.tgGetData(rxBuffer, sizeof(rxBuffer));
-            if (rxLen > 0) {
-                uint8_t cmd = rxBuffer[0];
-                if (cmd == 0x60 || cmd == 0x61) { // Auth A or Auth B
-                    Serial.println("Auth requested");
-                    // 1. Extract block number
-                    uint8_t block = rxBuffer[1];
-                    uint8_t sector = block / 4;
-                    
-                    // 2. Get key from sector trailer (block 3 of the sector)
-                    // Key A is first 6 bytes, Key B is last 6 bytes
-                    uint64_t key = 0;
-                    if (cmd == 0x60) {
-                        for(int i=0; i<6; i++) key = (key << 8) | currentCardData[sector * 4 + 3][i];
-                    } else {
-                        for(int i=10; i<16; i++) key = (key << 8) | currentCardData[sector * 4 + 3][i];
+                    if (rxLen > 0) {
+                        uint8_t cmd = rxBuffer[0];
+                        if (currentType == "mifareUltralight") {
+                            if (cmd == 0x30) { // READ
+                                uint8_t page = rxBuffer[1];
+                                uint8_t resp[16];
+                                for (int i = 0; i < 4; i++) {
+                                    int p = page + i;
+                                    if (p < 135) {
+                                        resp[i*4] = currentUlData[p][0];
+                                        resp[i*4+1] = currentUlData[p][1];
+                                        resp[i*4+2] = currentUlData[p][2];
+                                        resp[i*4+3] = currentUlData[p][3];
+                                    } else {
+                                        resp[i*4] = 0; resp[i*4+1] = 0; resp[i*4+2] = 0; resp[i*4+3] = 0;
+                                    }
+                                }
+                                nfc.tgSetData(resp, 16);
+                            } else if (cmd == 0x50) { // HALT
+                                // Do nothing
+                            }
+                        } else {
+                            // Classic Logic
+                            if (cmd == 0x60 || cmd == 0x61) { // Auth A or Auth B
+                                Serial.println("Auth requested");
+                                sendAuthNotification();
+                                // 1. Extract block number
+                                uint8_t block = rxBuffer[1];
+                                uint8_t sector = block / 4;
+                                
+                                // 2. Get key from sector trailer (block 3 of the sector)
+                                // Key A is first 6 bytes, Key B is last 6 bytes
+                                uint64_t key = 0;
+                                if (cmd == 0x60) {
+                                    for(int i=0; i<6; i++) key = (key << 8) | currentCardData[sector * 4 + 3][i];
+                                } else {
+                                    for(int i=10; i<16; i++) key = (key << 8) | currentCardData[sector * 4 + 3][i];
+                                }
+                                
+                                // 3. Init Crypto1
+                                crypto1_init(&crypto1, key);
+                                
+                                // 4. Generate random nonce (nT) and send
+                                uint32_t nt_val = esp_random();
+                                uint8_t nT[4] = { (uint8_t)(nt_val & 0xFF), (uint8_t)((nt_val >> 8) & 0xFF), (uint8_t)((nt_val >> 16) & 0xFF), (uint8_t)((nt_val >> 24) & 0xFF) };
+                                
+                                // Crypto1 initialization feed: UID XOR nT
+                                uint32_t uid32 = currentCardData[0][0] | (currentCardData[0][1] << 8) | (currentCardData[0][2] << 16) | (currentCardData[0][3] << 24);
+                                crypto1_word(&crypto1, uid32 ^ nt_val, 0);
+                                
+                                nfc.tgSetData(nT, 4);
+                                
+                                // 5. Receive reader's encrypted nonce (nR) and answer (aR)
+                                rxLen = nfc.tgGetData(rxBuffer, sizeof(rxBuffer));
+                                if (rxLen == 8) {
+                                    // 6. Verify and send aT (encrypted answer)
+                                    uint32_t nr_enc = rxBuffer[0] | (rxBuffer[1] << 8) | (rxBuffer[2] << 16) | (rxBuffer[3] << 24);
+                                    
+                                    // Feed the encrypted reader nonce into the cipher
+                                    crypto1_word(&crypto1, nr_enc, 1);
+                                    
+                                    // The reader's answer (aR) verification would happen here.
+                                    
+                                    isAuthenticated = true;
+                                    
+                                    // Calculate Tag Answer (aT) - in a real implementation this is prng_suc(nt_val)
+                                    uint32_t at_plain = 0xdeadbeef; // Placeholder for PRNG successor
+                                    uint32_t at_enc = crypto1_word(&crypto1, at_plain, 0);
+                                    
+                                    uint8_t aT[4] = { (uint8_t)(at_enc & 0xFF), (uint8_t)((at_enc >> 8) & 0xFF), (uint8_t)((at_enc >> 16) & 0xFF), (uint8_t)((at_enc >> 24) & 0xFF) };
+                                    nfc.tgSetData(aT, 4);
+                                }
+                            } else if (cmd == 0x30 && isAuthenticated) { // Read
+                                uint8_t block = rxBuffer[1];
+                                uint8_t resp[16];
+                                // Decrypt read request, encrypt response
+                                for (int i=0; i<16; i++) {
+                                    resp[i] = currentCardData[block][i] ^ crypto1_byte(&crypto1, 0x00, 0);
+                                }
+                                nfc.tgSetData(resp, 16);
+                            } else if (cmd == 0x50) { // Halt
+                                isAuthenticated = false;
+                            }
+                        }
                     }
-                    
-                    // 3. Init Crypto1
-                    crypto1_init(&crypto1, key);
-                    
-                    // 4. Generate random nonce (nT) and send
-                    uint32_t nt_val = esp_random();
-                    uint8_t nT[4] = { (uint8_t)(nt_val & 0xFF), (uint8_t)((nt_val >> 8) & 0xFF), (uint8_t)((nt_val >> 16) & 0xFF), (uint8_t)((nt_val >> 24) & 0xFF) };
-                    
-                    // Crypto1 initialization feed: UID XOR nT
-                    uint32_t uid32 = currentCardData[0][0] | (currentCardData[0][1] << 8) | (currentCardData[0][2] << 16) | (currentCardData[0][3] << 24);
-                    crypto1_word(&crypto1, uid32 ^ nt_val, 0);
-                    
-                    nfc.tgSetData(nT, 4);
-                    
-                    // 5. Receive reader's encrypted nonce (nR) and answer (aR)
-                    rxLen = nfc.tgGetData(rxBuffer, sizeof(rxBuffer));
-                    if (rxLen == 8) {
-                        // 6. Verify and send aT (encrypted answer)
-                        uint32_t nr_enc = rxBuffer[0] | (rxBuffer[1] << 8) | (rxBuffer[2] << 16) | (rxBuffer[3] << 24);
-                        
-                        // Feed the encrypted reader nonce into the cipher
-                        crypto1_word(&crypto1, nr_enc, 1);
-                        
-                        // The reader's answer (aR) verification would happen here.
-                        
-                        isAuthenticated = true;
-                        
-                        // Calculate Tag Answer (aT) - in a real implementation this is prng_suc(nt_val)
-                        uint32_t at_plain = 0xdeadbeef; // Placeholder for PRNG successor
-                        uint32_t at_enc = crypto1_word(&crypto1, at_plain, 0);
-                        
-                        uint8_t aT[4] = { (uint8_t)(at_enc & 0xFF), (uint8_t)((at_enc >> 8) & 0xFF), (uint8_t)((at_enc >> 16) & 0xFF), (uint8_t)((at_enc >> 24) & 0xFF) };
-                        nfc.tgSetData(aT, 4);
-                    }
-                } else if (cmd == 0x30 && isAuthenticated) { // Read
-                    uint8_t block = rxBuffer[1];
-                    uint8_t resp[16];
-                    // Decrypt read request, encrypt response
-                    for (int i=0; i<16; i++) {
-                        resp[i] = currentCardData[block][i] ^ crypto1_byte(&crypto1, 0x00, 0);
-                    }
-                    nfc.tgSetData(resp, 16);
-                } else if (cmd == 0x50) { // Halt
-                    isAuthenticated = false;
-                }
-            }
         }
     } else if (isEmulating125) {
         // Modulate the 125kHz carrier here

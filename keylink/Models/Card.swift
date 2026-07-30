@@ -4,6 +4,7 @@ import SwiftData
 enum CardType: String, Codable {
     case mifareClassic
     case hidProx26
+    case mifareUltralight
 }
 
 @Model
@@ -14,6 +15,7 @@ final class Card {
     var atqa: [UInt8]        // 2 bytes
     var sak: UInt8
     var sectors: [[UInt8]]?  // nil = UID-only
+    var pages: [[UInt8]]?    // Ultralight/NTAG (4 bytes per page)
     
     // 125kHz specific fields
     var type: CardType = CardType.mifareClassic
@@ -22,7 +24,7 @@ final class Card {
     
     var createdAt: Date
     
-    init(name: String, type: CardType = .mifareClassic, uid: String = "", atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil, facilityCode: Int? = nil, cardNumber: Int? = nil) {
+    init(name: String, type: CardType = .mifareClassic, uid: String = "", atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil, pages: [[UInt8]]? = nil, facilityCode: Int? = nil, cardNumber: Int? = nil) {
         self.id = UUID()
         self.name = name
         self.type = type
@@ -30,6 +32,7 @@ final class Card {
         self.atqa = atqa
         self.sak = sak
         self.sectors = sectors
+        self.pages = pages
         self.facilityCode = facilityCode
         self.cardNumber = cardNumber
         self.createdAt = Date()
@@ -50,6 +53,6 @@ final class Card {
     }
     
     var isFullClone: Bool {
-        sectors != nil
+        sectors != nil || pages != nil
     }
 }
