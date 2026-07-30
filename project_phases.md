@@ -69,8 +69,8 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 
 ## Future Roadmap (v3.0) & Robustness (v1.1)
 While v1.0/v2.0 software features are complete, the following improvements are planned:
-- **Robustness (v1.1):** PN532 auto-retry on timeout, battery level reporting over BLE, and configurable emulation duration.
-- **Background BLE Reconnection:** Ensure the app stays connected to the bridge in your pocket.
+- **Robustness (v1.1):** ✅ (Completed) PN532 auto-retry on timeout, battery level reporting over BLE, and configurable emulation duration.
+- **Background BLE Reconnection:** ✅ (Completed) Ensure the app stays connected to the bridge in your pocket.
 - **Multi-Protocol Expansion (v3.0):** Add support for MIFARE Ultralight, NTAG emulation, and DESFire light.
 - **Ecosystem:** Apple Watch companion app and Lock Screen widgets for quick-emulation without opening the iPhone app.
 
