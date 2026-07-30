@@ -67,9 +67,8 @@ Based on the architecture and workflow of the KeyLink project, here are the defi
 
 ---
 
-## Next Immediate Steps (Choose One)
-With the core software and cryptographic engine complete, the project is at a crossroads. The next immediate step should be chosen from the following:
+## Next Immediate Steps
+
+With the core software, cryptographic engine, 125kHz support, and direct emulation research complete, the project software stack is feature-complete for v1.0 and v2.0. The only remaining major step is:
 
 1. **Hardware Assembly & Real-World Testing:** Procure the ESP32-S3 and PN532, wire them via UART, flash the `keylink_bridge.ino` firmware, and test against a physical door reader.
-2. **125 kHz RFID Support Planning:** Begin architecting the hardware additions (e.g., T5577 module or custom coil) and firmware updates required to emulate older low-frequency badges (HID Prox, EM4100).
-3. **iOS 18+ Direct Emulation Research:** Investigate the feasibility of bypassing the ESP32 hardware entirely by hooking into the `NFCD` daemon on keylink/jailbroken iPhones.
