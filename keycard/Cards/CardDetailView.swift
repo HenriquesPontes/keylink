@@ -71,7 +71,7 @@ struct CardDetailView: View {
                     } label: {
                         ActionButtonView(title: "Update", icon: "arrow.clockwise")
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NoAnimationButtonStyle())
 
                     ActionButton(
                         title: "Records", icon: "list.bullet.rectangle",
@@ -119,7 +119,7 @@ struct CardDetailView: View {
                     } label: {
                         ActionButtonView(title: "Write", icon: "square.and.arrow.down.fill")
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NoAnimationButtonStyle())
                 }
 
                 // Tag Information
@@ -261,6 +261,7 @@ struct ActionButtonView: View {
                         Color(UIColor.secondarySystemGroupedBackground))
                 )
                 .frame(height: 72)
+                .frame(maxWidth: .infinity)
                 .overlay(
                     Image(systemName: icon)
                         .font(.system(size: 26))
@@ -269,8 +270,17 @@ struct ActionButtonView: View {
 
             Text(title)
                 .font(.caption)
-                .foregroundColor(.primary)  // Keep text primary so it's readable in light/dark
+                .foregroundColor(.primary)
         }
+        .frame(maxWidth: .infinity)
+        .fixedSize(horizontal: false, vertical: true)
+        .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+struct NoAnimationButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
     }
 }
 
@@ -283,7 +293,7 @@ struct ActionButton: View {
         Button(action: action) {
             ActionButtonView(title: title, icon: icon)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NoAnimationButtonStyle())
     }
 }
 

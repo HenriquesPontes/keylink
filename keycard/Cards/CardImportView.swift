@@ -163,17 +163,15 @@ struct CardImportView: View {
                             .font(.headline)
                             .padding(.horizontal)
                         
+                        CardRow(card: card)
+                            .padding(.horizontal)
+                        
                         VStack(spacing: 12) {
                             TextField("Card Name", text: $cardName)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                            
-                            HStack {
-                                Text("UID")
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text(card.displayUID)
-                                    .font(.system(.body, design: .monospaced))
-                            }
+                                .onChange(of: cardName) { _, newValue in
+                                    importedCard?.name = newValue.isEmpty ? "Unnamed Card" : newValue
+                                }
                             
                             if card.type == .mifareClassic {
                                 HStack {
