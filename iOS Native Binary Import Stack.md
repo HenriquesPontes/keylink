@@ -454,7 +454,7 @@ struct CardLibraryView: View {
                     .onDelete(perform: deleteCards)
                 }
             }
-            .navigationTitle("KeyLink")
+            .navigationTitle("KeyCard")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -711,7 +711,7 @@ struct EmulationView: View {
 ```xml
 <!-- Required for BLE -->
 <key>NSBluetoothAlwaysUsageDescription</key>
-<string>KeyLink uses Bluetooth to connect to your NFC Bridge device.</string>
+<string>KeyCard uses Bluetooth to connect to your NFC Bridge device.</string>
 
 <!-- Required for file import -->
 <key>UISupportsDocumentBrowser</key>
@@ -753,7 +753,7 @@ python3 proxmark_to_bridge.py hf-mf-A1B2C3D4-dump.bin -o my_gym.json
 
 # 3. AirDrop my_gym.json to iPhone
 
-# 4. Open KeyLink app → tap (+) → "Import from File" → select my_gym.json
+# 4. Open KeyCard app → tap (+) → "Import from File" → select my_gym.json
 
 # 5. Edit name → Save
 

@@ -1,25 +1,25 @@
 require 'xcodeproj'
 
-project_path = './keylink.xcodeproj'
+project_path = './keycard.xcodeproj'
 project = Xcodeproj::Project.open(project_path)
 
 # 1. Create the test target
-main_target = project.targets.find { |t| t.name == 'keylink' }
+main_target = project.targets.find { |t| t.name == 'keycard' }
 if main_target.nil?
-  puts "Could not find 'keylink' target"
+  puts "Could not find 'keycard' target"
   exit 1
 end
 
 # Check if it already exists
-if project.targets.find { |t| t.name == 'keylinkTests' }
-  puts "keylinkTests target already exists!"
+if project.targets.find { |t| t.name == 'keycardTests' }
+  puts "keycardTests target already exists!"
   exit 0
 end
 
-test_target = project.new_target(:unit_test_bundle, 'keylinkTests', :ios)
-test_target.build_configuration_list.set_setting('PRODUCT_BUNDLE_IDENTIFIER', 'com.livlu.keylinkTests')
-test_target.build_configuration_list.set_setting('INFOPLIST_FILE', 'keylinkTests/Info.plist')
-test_target.build_configuration_list.set_setting('TEST_HOST', '$(BUILT_PRODUCTS_DIR)/keylink.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/keylink')
+test_target = project.new_target(:unit_test_bundle, 'keycardTests', :ios)
+test_target.build_configuration_list.set_setting('PRODUCT_BUNDLE_IDENTIFIER', 'com.livlu.keycardTests')
+test_target.build_configuration_list.set_setting('INFOPLIST_FILE', 'keycardTests/Info.plist')
+test_target.build_configuration_list.set_setting('TEST_HOST', '$(BUILT_PRODUCTS_DIR)/keycard.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/keycard')
 test_target.build_configuration_list.set_setting('BUNDLE_LOADER', '$(TEST_HOST)')
 test_target.build_configuration_list.set_setting('TARGETED_DEVICE_FAMILY', '1,2')
 test_target.build_configuration_list.set_setting('SWIFT_VERSION', '5.0')
@@ -31,9 +31,9 @@ test_target.build_configuration_list.set_setting('CODE_SIGN_STYLE', 'Automatic')
 test_target.add_dependency(main_target)
 
 # 3. Create the group and directory
-group = project.main_group.find_subpath(File.join('keylinkTests'), true)
+group = project.main_group.find_subpath(File.join('keycardTests'), true)
 group.set_source_tree('<group>')
-group.set_path('keylinkTests')
+group.set_path('keycardTests')
 
 # 4. Add the Info.plist and Test file (we will create them on disk next)
 file_ref = group.new_reference('CardImportManagerTests.swift')
@@ -43,4 +43,4 @@ info_ref = group.new_reference('Info.plist')
 
 # Save project
 project.save
-puts "Added keylinkTests target successfully!"
+puts "Added keycardTests target successfully!"

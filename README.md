@@ -1,10 +1,10 @@
-# KeyLink: Universal Mobile Key Platform
+# KeyCard: Universal Mobile Key Platform
 
-KeyLink is an open-source hardware and software stack that turns any iPhone into a universal access key by proxying NFC emulation through a BLE-connected wearable bridge. It bypasses Apple's strict NFC hardware locks without requiring a jailbreak or Apple Wallet hacks.
+KeyCard is an open-source hardware and software stack that turns any iPhone into a universal access key by proxying NFC emulation through a BLE-connected wearable bridge. It bypasses Apple's strict NFC hardware locks without requiring a jailbreak or Apple Wallet hacks.
 
 ## 🏗️ Architecture
 
-KeyLink consists of two main components:
+KeyCard consists of two main components:
 1. **The iOS App (SwiftUI):** A clean, native interface to manage your card library. It imports raw `.bin` dumps directly (no python scripts required) and communicates with the hardware bridge over BLE.
 2. **The Hardware Bridge (ESP32-S3 + PN532):** A small, battery-powered proxy device. It receives card data via BLE from the iPhone and emulates the physical NFC card (e.g., MIFARE Classic 1K) at the reader.
 
@@ -29,6 +29,6 @@ KeyLink consists of two main components:
 
 ## ⚠️ Legal & Security
 
-KeyLink is built for educational and personal use, allowing you to emulate cards **you already own**. It is not a tool for unauthorized access or commercial cloning. 
+KeyCard is built for educational and personal use, allowing you to emulate cards **you already own**. It is not a tool for unauthorized access or commercial cloning. 
 
 ©️ 2026 Henriques Pontes, All rights reserved.

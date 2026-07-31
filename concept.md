@@ -7,7 +7,7 @@ Now we're talking specifics. Let me give you the **real** open-source landscape 
 
 There **is** an open-source project called **TrollNFC** that claims to read, write, and emulate NFC cards directly on iPhone. 
 
-**The catch:** It requires **keylink**, which means:
+**The catch:** It requires **keycard**, which means:
 - Your iPhone must be on a specific iOS version vulnerable to the CoreTrust bug (roughly iOS 15.0–17.0, depending on device)
 - You sideload it outside the App Store
 - It uses private APIs / exploits to access the NFC controller in ways Apple blocks
@@ -72,12 +72,12 @@ A small ESP32 + PN5180 device in a keychain form factor. Your iPhone app talks t
 
 ### Tier 2: The TrollNFC Route (Hacked iPhone Only)
 If your iPhone happens to be on a compatible iOS version:
-- Install keylink
+- Install keycard
 - Sideload TrollNFC
 - Import your MFOC dump
 - Emulate directly
 
-**Reality check:** Most people's phones are on iOS 18+. keylink doesn't work there. And even if it does, you're carrying a security liability.
+**Reality check:** Most people's phones are on iOS 18+. keycard doesn't work there. And even if it does, you're carrying a security liability.
 
 ### Tier 3: Become an Apple Partner (Business Route)
 - Register a company

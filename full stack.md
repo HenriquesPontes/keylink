@@ -524,7 +524,7 @@ This creates `hf-mf-[UID]-dump.bin` (1024 bytes = 64 blocks × 16 bytes).
 
 **Transfer the raw `.bin` dump:** AirDrop the `hf-mf-[UID]-dump.bin` file to your iPhone, or email it.
 
-**Import directly into KeyLink:** The iOS app natively parses `.bin` files. There is no need for intermediary Python conversion scripts.
+**Import directly into KeyCard:** The iOS app natively parses `.bin` files. There is no need for intermediary Python conversion scripts.
 
 ---
 

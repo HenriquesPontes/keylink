@@ -1,12 +1,12 @@
-Here's the complete **KeyLink iOS project folder structure**, organized the way a real SwiftUI app should be laid out:
+Here's the complete **KeyCard iOS project folder structure**, organized the way a real SwiftUI app should be laid out:
 
 ```
-KeyLink/
-├── KeyLink.xcodeproj/
+KeyCard/
+├── KeyCard.xcodeproj/
 │   └── (Xcode project files)
 │
-├── KeyLink/
-│   ├── KeyLinkApp.swift                    # @main entry point
+├── KeyCard/
+│   ├── KeyCardApp.swift                    # @main entry point
 │   ├── Info.plist                          # BLE permissions, file sharing
 │   │
 │   ├── Models/
@@ -38,11 +38,11 @@ KeyLink/
 │   └── Preview Content/
 │       └── Preview Assets.xcassets/
 │
-├── KeyLinkTests/
+├── KeyCardTests/
 │   └── CardImportManagerTests.swift        # Unit tests for binary parsing
 │
-└── KeyLinkUITests/
-    └── KeyLinkUITests.swift
+└── KeyCardUITests/
+    └── KeyCardUITests.swift
 ```
 
 ---
@@ -51,7 +51,7 @@ KeyLink/
 
 | File | Lines | Purpose |
 |---|---|---|
-| `KeyLinkApp.swift` | ~15 | Bootstraps SwiftUI + SwiftData container |
+| `KeyCardApp.swift` | ~15 | Bootstraps SwiftUI + SwiftData container |
 | `Card.swift` | ~50 | Data model with `@Model`, computed properties |
 | `BLEManager.swift` | ~150 | `CBCentralManagerDelegate`, GATT read/write/notify |
 | `BLEModels.swift` | ~40 | `Codable` structs for bridge JSON protocol |
@@ -72,7 +72,7 @@ KeyLink/
 In Xcode, organize with **folder references** (yellow folders) like this:
 
 ```
-KeyLink (blue project icon)
+KeyCard (blue project icon)
 ├── Models          ← yellow folder
 ├── BLE             ← yellow folder  
 ├── Cards           ← yellow folder
