@@ -1,11 +1,50 @@
 import SwiftUI
 import ActivityKit
+import CoreNFC
+import Combine
+
+class NFCEmulationPresenter: NSObject, NFCTagReaderSessionDelegate, ObservableObject {
+    @Published var isEmulating = false
+    var session: NFCTagReaderSession?
+    
+    func showSystemNFCUI(message: String = "Hold Near Reader") {
+        if !NFCTagReaderSession.readingAvailable {
+            print("NFC reading is not available on this device (e.g., Simulator). System NFC UI cannot be shown.")
+            // On a real device, it will proceed.
+        }
+        
+        session = NFCTagReaderSession(pollingOption: [.iso14443, .iso15693], delegate: self, queue: nil)
+        session?.alertMessage = message
+        session?.begin()
+    }
+    
+    func stopSystemNFCUI(successMessage: String? = nil) {
+        if let msg = successMessage {
+            session?.alertMessage = msg
+            // Delay invalidation slightly so the user sees the success message
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                self.session?.invalidate()
+                self.session = nil
+            }
+        } else {
+            session?.invalidate()
+            session = nil
+        }
+    }
+    
+    func tagReaderSessionDidBecomeActive(_ session: NFCTagReaderSession) {}
+    func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
+        self.session = nil
+    }
+    func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {}
+}
 
 struct EmulationView: View {
     let card: Card
     @Environment(\.dismiss) private var dismiss
     @StateObject private var ble = BLEManager()
     @StateObject private var nfcd = NFCDManager()
+    @State private var nfcPresenter = NFCEmulationPresenter()
     
     @State private var isEmulating = false
     @State private var timeRemaining = 30
@@ -229,6 +268,7 @@ struct EmulationView: View {
         timeRemaining = selectedDuration
         
         startLiveActivity(status: "Emulating on Bridge")
+        nfcPresenter.showSystemNFCUI(message: "Emulating via Bridge...")
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if timeRemaining > 0 {
@@ -246,6 +286,7 @@ struct EmulationView: View {
         timer?.invalidate()
         timer = nil
         endLiveActivity()
+        nfcPresenter.stopSystemNFCUI(successMessage: "Emulation Complete")
     }
     
     private func startDirectEmulation() {

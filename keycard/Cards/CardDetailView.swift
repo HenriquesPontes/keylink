@@ -4,7 +4,6 @@ import PhotosUI
 
 struct CardDetailView: View {
     @Bindable var card: Card
-    @State private var showEmulation = false
     @State private var showRecords = false
     @State private var showAlert = false
     @State private var alertTitle = ""
@@ -17,6 +16,8 @@ struct CardDetailView: View {
     @State private var newName = ""
     
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
+    
+    @StateObject private var nfcPresenter = NFCEmulationPresenter()
 
     var body: some View {
         NavigationView {
@@ -26,7 +27,7 @@ struct CardDetailView: View {
                     CardRow(card: card)
                     .padding(.top, 16)
                     .onTapGesture {
-                        showEmulation = true
+                        nfcPresenter.showSystemNFCUI()
                     }
 
                 // Action Buttons
@@ -34,7 +35,7 @@ struct CardDetailView: View {
                     ActionButton(
                         title: "Emulate", icon: "play.fill",
                         action: {
-                            showEmulation = true
+                            nfcPresenter.showSystemNFCUI()
                         })
 
                     Menu {
@@ -156,9 +157,6 @@ struct CardDetailView: View {
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
         .presentationDetents([.fraction(0.9)])
-        .sheet(isPresented: $showEmulation) {
-            EmulationView(card: card)
-        }
         .sheet(isPresented: $showRecords) {
             RecordsView(card: card)
         }
