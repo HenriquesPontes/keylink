@@ -16,5 +16,7 @@
 		<string>com.livlu.keycard.app.refresh</string>
 		<string>com.livlu.keycard.app.processing</string>
 	</array>
+	<key>NFCReaderUsageDescription</key>
+	<string>Allow the app to scan NFC cards to import them into your wallet.</string>
 </dict>
 </plist>

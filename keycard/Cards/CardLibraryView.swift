@@ -7,45 +7,109 @@ struct CardLibraryView: View {
     
     @State private var showImport = false
     @State private var selectedCard: Card?
+    @State private var showSettings = false
+    
+    @State private var searchText = ""
+    @State private var showSearch = false
+    
+    private var filteredCards: [Card] {
+        if searchText.isEmpty {
+            return cards
+        } else {
+            return cards.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
     
     var body: some View {
         NavigationView {
-            List {
+            ScrollView {
+                HStack {
+                    Text("Cards")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                
                 if cards.isEmpty {
-                    Section {
-                        VStack(spacing: 12) {
-                            Image(systemName: "square.dashed")
-                                .font(.system(size: 48))
-                                .foregroundColor(.secondary)
-                            Text("No Cards")
-                                .font(.headline)
-                            Text("Tap the add button to scan or edit")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
+                    VStack(spacing: 12) {
+                        Image(systemName: "square.dashed")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        Text("No Cards")
+                            .font(.headline)
+                        Text("Tap the add button to scan or edit")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 80)
+                } else if filteredCards.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        Text("No Results")
+                            .font(.headline)
+                        Text("No cards matched your search.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 80)
                 } else {
-                    ForEach(cards) { card in
-                        CardRow(card: card)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                selectedCard = card
-                            }
+                    VStack(spacing: -150) {
+                        ForEach(filteredCards) { card in
+                            CardRow(card: card)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    selectedCard = card
+                                }
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        deleteCard(card)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                                .zIndex(zIndex(for: card))
+                        }
                     }
-                    .onDelete(perform: deleteCards)
+                    .padding(.horizontal)
+                    .padding(.bottom, 240) // Space for the last card
                 }
             }
+            .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showImport = true
                     } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(.black, .white)
+                        Image(systemName: "plus")
+                            .foregroundColor(.primary)
                             .font(.title2)
+                    }
+                }
+                
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button {
+                        showSearch.toggle()
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.primary)
+                    }
+                    
+                    Menu {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.primary)
                     }
                 }
             }
@@ -55,81 +119,22 @@ struct CardLibraryView: View {
                 }
             }
             .sheet(item: $selectedCard) { card in
-                EmulationView(card: card)
+                CardDetailView(card: card)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
             }
         }
+        .searchable(text: $searchText, isPresented: $showSearch, prompt: "Search cards")
     }
     
-    private func deleteCards(offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(cards[index])
-        }
+    private func deleteCard(_ card: Card) {
+        modelContext.delete(card)
         try? modelContext.save()
+    }
+    
+    private func zIndex(for card: Card) -> Double {
+        Double(-(cards.firstIndex(where: { $0.id == card.id }) ?? 0))
     }
 }
 
-struct CardRow: View {
-    let card: Card
-    
-    private var iconName: String {
-        if card.type == .hidProx26 { return "wave.3.left.circle.fill" }
-        return card.isFullClone ? "key.fill" : "wave.3.right"
-    }
-    
-    private var iconColor: Color {
-        if card.type == .hidProx26 { return .blue }
-        return card.isFullClone ? .green : .orange
-    }
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.15))
-                    .frame(width: 44, height: 44)
-                Image(systemName: iconName)
-                    .foregroundColor(iconColor)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(card.name)
-                    .font(.headline)
-                Text(card.displayUID)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            if card.type == .hidProx26 {
-                Text("125kHz")
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.15))
-                    .foregroundColor(.blue)
-                    .cornerRadius(8)
-            } else if card.isFullClone {
-                Text("Full")
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.green.opacity(0.15))
-                    .foregroundColor(.green)
-                    .cornerRadius(8)
-            } else {
-                Text("UID")
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.orange.opacity(0.15))
-                    .foregroundColor(.orange)
-                    .cornerRadius(8)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}

@@ -23,9 +23,11 @@ final class Card {
     var facilityCode: Int?
     var cardNumber: Int?
     
+    @Attribute(.externalStorage) var imageData: Data?
+    
     var createdAt: Date = Date()
     
-    init(name: String, type: CardType = .mifareClassic, uid: String = "", atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil, pages: [[UInt8]]? = nil, facilityCode: Int? = nil, cardNumber: Int? = nil) {
+    init(name: String, type: CardType = .mifareClassic, uid: String = "", atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil, pages: [[UInt8]]? = nil, facilityCode: Int? = nil, cardNumber: Int? = nil, imageData: Data? = nil) {
         self.id = UUID()
         self.name = name
         self.type = type
@@ -36,6 +38,7 @@ final class Card {
         self.pages = pages
         self.facilityCode = facilityCode
         self.cardNumber = cardNumber
+        self.imageData = imageData
         self.createdAt = Date()
     }
     

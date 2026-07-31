@@ -68,7 +68,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		84DFD534301BD94F000615EC = {
+		84DFD534301BD94F000615EC /* Exceptions for "keycard" folder in "keycard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -78,7 +78,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		84DFD529301BD94E000615EC /* keycard */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (84DFD534301BD94F000615EC, ); path = keycard; sourceTree = "<group>"; };
+		84DFD529301BD94E000615EC /* keycard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				84DFD534301BD94F000615EC /* Exceptions for "keycard" folder in "keycard" target */,
+			);
+			path = keycard;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */

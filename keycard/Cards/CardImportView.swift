@@ -17,9 +17,10 @@ struct CardImportView: View {
     @State private var manualFC: String = ""
     @State private var manualCN: String = ""
     
-    // Settings state
-    @State private var showSettings = false
+    // NFC Reader
+    @State private var nfcReader = NFCReaderManager()
     
+
     var onImport: ((Card) -> Void)?
     
     var body: some View {
@@ -27,6 +28,34 @@ struct CardImportView: View {
             VStack(spacing: 24) {
                 // Import method selection
                 VStack(spacing: 16) {
+                    Button {
+                        nfcReader.scan { card in
+                            importedCard = card
+                            cardName = card.name
+                        } onError: { error in
+                            errorMessage = error
+                            showError = true
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "wave.3.right.circle")
+                                .font(.title2)
+                            VStack(alignment: .leading) {
+                                Text("Scan NFC Card")
+                                    .font(.headline)
+                                Text("Hold card near top of iPhone")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
+                    
                     Button {
                         showDocumentPicker = true
                     } label: {
@@ -189,13 +218,7 @@ struct CardImportView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                }
+
             }
             .sheet(isPresented: $showDocumentPicker) {
                 DocumentPicker { url in
@@ -233,9 +256,7 @@ struct CardImportView: View {
             } message: {
                 Text("Enter the Facility Code and Card Number found on the back of the HID Prox badge.")
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
+
         }
     }
 }
