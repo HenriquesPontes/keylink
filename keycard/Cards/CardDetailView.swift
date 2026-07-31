@@ -30,13 +30,34 @@ struct CardDetailView: View {
                         nfcPresenter.showSystemNFCUI()
                     }
 
+                // QR Code Display
+                if card.type == .qrCode, let payload = card.qrPayload {
+                    VStack(spacing: 8) {
+                        Image(uiImage: QRCodeGenerator.shared.generate(from: payload))
+                            .resizable()
+                            .interpolation(.none)
+                            .scaledToFit()
+                            .frame(width: 250, height: 250)
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+                            
+                        Text("Scan to use")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 8)
+                }
+
                 // Action Buttons
                 HStack(spacing: 12) {
-                    ActionButton(
-                        title: "Emulate", icon: "play.fill",
-                        action: {
-                            nfcPresenter.showSystemNFCUI()
-                        })
+                    if card.type != .qrCode {
+                        ActionButton(
+                            title: "Emulate", icon: "play.fill",
+                            action: {
+                                nfcPresenter.showSystemNFCUI()
+                            })
+                    }
 
                     Menu {
                         Button {

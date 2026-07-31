@@ -17,12 +17,14 @@ struct keycardApp: App {
     }()
 
     @StateObject private var authManager = AuthenticationManager()
+    @StateObject private var bleManager = BLEManager()
     @Environment(\.scenePhase) var scenePhase
 
     var body: some Scene {
         WindowGroup {
             if authManager.isAuthenticated {
                 CardLibraryView()
+                    .environmentObject(bleManager)
             } else {
                 VStack(spacing: 20) {
                     Image(systemName: "faceid")

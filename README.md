@@ -22,10 +22,10 @@ KeyCard consists of two main components:
 - [x] iOS app: Native `.bin` import and card library
 - [x] Proxmark3 `.bin` dump integration (Full loop)
 - [x] Initial Crypto1 engine integration in firmware
-- [ ] Stabilize Crypto1 handshake & nested authentication
+- [x] Stabilize Crypto1 handshake & nested authentication
 - [ ] 125 kHz support (T5577)
-- [ ] Amiibo emulation (Future Goal)
-- [ ] Apple Watch companion app
+- [x] Amiibo emulation (NTAG215 specific commands)
+
 
 ## ⚠️ Legal & Security
 

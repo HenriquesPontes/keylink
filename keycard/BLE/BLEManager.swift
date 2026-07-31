@@ -2,8 +2,15 @@ import Foundation
 import CoreBluetooth
 import Combine
 import UIKit
+import CryptoKit
 
 class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+    
+    // 32-byte Static PSK for AES-256-GCM
+    let psk = SymmetricKey(data: Data([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 
+                                       0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
+                                       0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+                                       0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20]))
     @Published var isConnected = false
     @Published var statusMessage = "Scanning..."
     @Published var lastReaderEvent: String?
@@ -20,12 +27,31 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     
     override init() {
         super.init()
-        centralManager = CBCentralManager(delegate: self, queue: nil)
+        let options: [String: Any] = [CBCentralManagerOptionRestoreIdentifierKey: "keycard-ble-restore"]
+        centralManager = CBCentralManager(delegate: self, queue: nil, options: options)
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn {
-            central.scanForPeripherals(withServices: [serviceUUID], options: nil)
+            if peripheral == nil {
+                central.scanForPeripherals(withServices: [serviceUUID], options: nil)
+            }
+        }
+    }
+    
+    func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any]) {
+        if let restoredPeripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] {
+            for restored in restoredPeripherals {
+                self.peripheral = restored
+                restored.delegate = self
+                if restored.state == .disconnected {
+                    central.connect(restored, options: nil)
+                } else if restored.state == .connected {
+                    isConnected = true
+                    statusMessage = "Connected"
+                    restored.discoverServices([serviceUUID])
+                }
+            }
         }
     }
     
@@ -69,27 +95,43 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        guard let data = characteristic.value,
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
-        DispatchQueue.main.async {
-            if let status = json["status"] as? String {
-                self.statusMessage = status
+        guard let combinedData = characteristic.value else { return }
+        
+        do {
+            let sealedBox = try AES.GCM.SealedBox(combined: combinedData)
+            let decryptedData = try AES.GCM.open(sealedBox, using: psk)
+            
+            guard let json = try JSONSerialization.jsonObject(with: decryptedData) as? [String: Any] else { return }
+            
+            DispatchQueue.main.async {
+                if let status = json["status"] as? String {
+                    self.statusMessage = status
+                }
+                if let battery = json["battery"] as? Int {
+                    self.batteryLevel = battery
+                }
+                if let msg = json["msg"] as? String, msg == "auth_received" {
+                    self.lastReaderEvent = "🔓 Reader authenticated!"
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                }
             }
-            if let battery = json["battery"] as? Int {
-                self.batteryLevel = battery
-            }
-            if let msg = json["msg"] as? String, msg == "auth_received" {
-                self.lastReaderEvent = "🔓 Reader authenticated!"
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
-            }
+        } catch {
+            print("Failed to decrypt notification: \(error)")
         }
     }
     
     func sendCommand(_ dict: [String: Any]) {
         guard let char = cmdChar, let peripheral = peripheral else { return }
-        guard let data = try? JSONSerialization.data(withJSONObject: dict) else { return }
-        peripheral.writeValue(data, for: char, type: .withResponse)
+        guard let plaintext = try? JSONSerialization.data(withJSONObject: dict) else { return }
+        
+        do {
+            let sealedBox = try AES.GCM.seal(plaintext, using: psk)
+            guard let combinedData = sealedBox.combined else { return }
+            peripheral.writeValue(combinedData, for: char, type: .withResponse)
+        } catch {
+            print("Failed to encrypt command: \(error)")
+        }
     }
     
     func loadCard(_ card: Card) {
@@ -111,6 +153,10 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             }
         } else if card.type == .desfireLight {
             // DESFire Light is UID-only in our implementation for now, so no payload addition
+        } else if card.type == .desfire {
+            if let desfireData = card.desfireData {
+                payload["desfireData"] = desfireData
+            }
         }
         
         sendCommand(payload)

@@ -56,9 +56,10 @@ Once the firmware is flashed, you are ready to test the end-to-end system:
 
 1. **Power Up:** Plug the ESP32 into a portable power bank. Ensure the red power LED on the PN532 lights up.
 2. **Connect App:** Open the KeyCard iOS app. It should automatically discover and connect to the "KeyCard Bridge" via Bluetooth.
-3. **Select Card:** In the app's Card Library, tap the imported MIFARE card you wish to emulate.
-4. **Emulate:** Tap the **"Emulate (Bridge)"** button. The app will send the JSON payload with the UID and Sector data to the ESP32.
-5. **Unlock:** Hold the PN532 antenna up against the physical card reader. 
+3. **Hardware Setup (Pairing):** In the app, navigate to the **Settings** tab (via the gear icon) and tap **KeyCard Bridge Settings**. Ensure the status reads **"Connected"**.
+4. **Select Card:** In the app's Card Library, tap the imported MIFARE card you wish to emulate.
+5. **Emulate:** Tap the **"Emulate"** button. The app will send the JSON payload with the UID and Sector data to the ESP32.
+6. **Unlock:** Hold the PN532 antenna up against the physical card reader. 
    - If the reader is "UID-only", it should instantly beep and unlock.
    - If the reader attempts a secure read, the ESP32 will use the embedded `crapto1` engine to authenticate and serve the requested block data.
 

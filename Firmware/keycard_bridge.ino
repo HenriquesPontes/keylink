@@ -4,6 +4,12 @@
 #include <BLEUtils.h>
 #include <BLESecurity.h>
 #include <BLE2902.h>
+#include <mbedtls/gcm.h>
+#include "DESFireEmulator.h"
+
+// Initialize DESFire Emulator
+DESFireEmulator desfireEmulator;
+
 #include <Wire.h>
 #include <SPI.h>
 #include <PN532_HSU.h>
@@ -12,8 +18,17 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Update.h>
+#include "mbedtls/gcm.h"
 
 #include "crapto1.h"
+
+// 32-byte PSK for AES-256-GCM
+const unsigned char psk[32] = {
+    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 
+    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
+    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+    0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20
+};
 
 // Hardware Pins
 #define BATTERY_PIN 9
@@ -98,16 +113,40 @@ void startOTA() {
   Serial.println("HTTP server started");
 }
 
-void sendAuthNotification() {
+void sendEncryptedNotification(String jsonStr) {
     if (deviceConnected && pTxCharacteristic != NULL) {
-        DynamicJsonDocument doc(256);
-        doc["status"] = "reader_cmd";
-        doc["msg"] = "auth_received";
-        String out;
-        serializeJson(doc, out);
-        pTxCharacteristic->setValue(out.c_str());
+        size_t pt_len = jsonStr.length();
+        unsigned char nonce[12] = {0}; // Static for prototype
+        unsigned char tag[16];
+        unsigned char* ciphertext = (unsigned char*)malloc(pt_len);
+        
+        mbedtls_gcm_context ctx;
+        mbedtls_gcm_init(&ctx);
+        mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, psk, 256);
+        mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT, pt_len, nonce, 12, NULL, 0, (const unsigned char*)jsonStr.c_str(), ciphertext, 16, tag);
+        mbedtls_gcm_free(&ctx);
+        
+        size_t combined_len = 12 + pt_len + 16;
+        unsigned char* combined = (unsigned char*)malloc(combined_len);
+        memcpy(combined, nonce, 12);
+        memcpy(combined + 12, ciphertext, pt_len);
+        memcpy(combined + 12 + pt_len, tag, 16);
+        
+        pTxCharacteristic->setValue(combined, combined_len);
         pTxCharacteristic->notify();
+        
+        free(ciphertext);
+        free(combined);
     }
+}
+
+void sendAuthNotification() {
+    DynamicJsonDocument doc(256);
+    doc["status"] = "reader_cmd";
+    doc["msg"] = "auth_received";
+    String out;
+    serializeJson(doc, out);
+    sendEncryptedNotification(out);
 }
 
 class MyServerCallbacks: public BLEServerCallbacks {
@@ -122,19 +161,47 @@ class MyServerCallbacks: public BLEServerCallbacks {
 
 class MyCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-      String rxValue = pCharacteristic->getValue().c_str();
-      if (rxValue.length() > 0) {
-        // Serial.println("Received Payload:"); // Disable print for large payloads
-        
-        DynamicJsonDocument doc(16384);
-        DeserializationError error = deserializeJson(doc, rxValue);
-        
-        if (!error) {
+      std::string rxValue = pCharacteristic->getValue();
+      if (rxValue.length() > 28) { // 12 nonce + 16 tag + at least 1 byte ciphertext
+        size_t ciphertext_len = rxValue.length() - 28;
+        unsigned char nonce[12];
+        unsigned char tag[16];
+        unsigned char* ciphertext = (unsigned char*)malloc(ciphertext_len);
+        unsigned char* plaintext = (unsigned char*)malloc(ciphertext_len + 1);
+
+        memcpy(nonce, rxValue.data(), 12);
+        memcpy(ciphertext, rxValue.data() + 12, ciphertext_len);
+        memcpy(tag, rxValue.data() + 12 + ciphertext_len, 16);
+
+        mbedtls_gcm_context ctx;
+        mbedtls_gcm_init(&ctx);
+        mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, psk, 256);
+
+        int ret = mbedtls_gcm_auth_decrypt(&ctx, ciphertext_len, nonce, 12, NULL, 0, tag, 16, ciphertext, plaintext);
+        mbedtls_gcm_free(&ctx);
+
+        if (ret == 0) {
+          plaintext[ciphertext_len] = '\0';
+          String jsonStr = String((char*)plaintext);
+          
+          DynamicJsonDocument doc(16384);
+          DeserializationError error = deserializeJson(doc, jsonStr);
+          
+          if (!error) {
           const char* cmd = doc["cmd"];
           if (String(cmd) == "load_card") {
             const char* type = doc["type"];
             if (type) {
-                currentType = String(type);
+                String typeStr = String(type);
+                currentType = typeStr;
+                
+                if (currentType == "desfire") {
+                    if (doc.containsKey("desfireData")) {
+                        String emlData = doc["desfireData"].as<String>();
+                        desfireEmulator.loadEML(emlData);
+                    }
+                }
+                
                 if (currentType == "hidProx26") {
                     currentUidString = doc["uid"].as<String>();
                     Serial.println("HID Prox loaded.");
@@ -213,6 +280,11 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         } else {
             Serial.println("JSON Parse Error");
         }
+        } else {
+            Serial.println("Decryption Error");
+        }
+        free(ciphertext);
+        free(plaintext);
       }
     }
 };
@@ -275,6 +347,26 @@ void setup() {
   Serial.println("Waiting for a client connection to notify...");
 }
 
+void playFSKBit(bool bit) {
+    if (bit == 0) {
+        // Logic 0: 12.5 kHz (5 cycles of 80us period)
+        for (int i = 0; i < 5; i++) {
+            ledcWrite(0, 128); // Carrier ON
+            delayMicroseconds(40);
+            ledcWrite(0, 0);   // Carrier OFF
+            delayMicroseconds(40);
+        }
+    } else {
+        // Logic 1: 15.625 kHz (6 cycles of 64us period)
+        for (int i = 0; i < 6; i++) {
+            ledcWrite(0, 128); // Carrier ON
+            delayMicroseconds(32);
+            ledcWrite(0, 0);   // Carrier OFF
+            delayMicroseconds(32);
+        }
+    }
+}
+
 void loop() {
     if (isOTA) {
         server.handleClient();
@@ -308,8 +400,7 @@ void loop() {
         doc["battery"] = percentage;
         String out;
         serializeJson(doc, out);
-        pTxCharacteristic->setValue(out.c_str());
-        pTxCharacteristic->notify();
+        sendEncryptedNotification(out);
     }
     
     if (isEmulating && cardDataLoaded) {
@@ -358,7 +449,13 @@ void loop() {
             int rxLen = nfc.tgGetData(rxBuffer, sizeof(rxBuffer));
                     if (rxLen > 0) {
                         uint8_t cmd = rxBuffer[0];
-                        if (currentType == "desfireLight") {
+                        if (currentType == "desfire") {
+                            uint8_t txBuffer[64];
+                            int txLen = desfireEmulator.processAPDU(rxBuffer, rxLen, txBuffer);
+                            if (txLen > 0) {
+                                nfc.tgSetData(txBuffer, txLen);
+                            }
+                        } else if (currentType == "desfireLight") {
                             // UID-only mode: Ignore ISO-DEP APDU commands
                             Serial.println("Received APDU, ignoring (UID-only mode)");
                         } else if (currentType == "mifareUltralight") {
@@ -377,6 +474,33 @@ void loop() {
                                     }
                                 }
                                 nfc.tgSetData(resp, 16);
+                            } else if (cmd == 0x60) { // GET_VERSION (NTAG215 specific)
+                                // NTAG215 Version Information: NXP, NTAG, 50pF, 1.0, 504 bytes, ISO14443-3
+                                uint8_t version[8] = { 0x00, 0x04, 0x04, 0x02, 0x01, 0x00, 0x11, 0x03 };
+                                nfc.tgSetData(version, 8);
+                            } else if (cmd == 0x3A) { // FAST_READ
+                                uint8_t startPage = rxBuffer[1];
+                                uint8_t endPage = rxBuffer[2];
+                                if (startPage <= endPage && endPage < 135) {
+                                    int numPages = endPage - startPage + 1;
+                                    int byteCount = numPages * 4;
+                                    if (byteCount <= 64) { // Typical PN532 buffer limit for tgSetData
+                                        uint8_t resp[64];
+                                        for (int i = 0; i < numPages; i++) {
+                                            int p = startPage + i;
+                                            resp[i*4] = currentUlData[p][0];
+                                            resp[i*4+1] = currentUlData[p][1];
+                                            resp[i*4+2] = currentUlData[p][2];
+                                            resp[i*4+3] = currentUlData[p][3];
+                                        }
+                                        nfc.tgSetData(resp, byteCount);
+                                    }
+                                }
+                            } else if (cmd == 0x1B) { // PWD_AUTH
+                                // NTAG215 Password Authentication. 
+                                // Return the 2-byte PACK from Page 134 to fake a successful authentication.
+                                uint8_t pack[2] = { currentUlData[134][0], currentUlData[134][1] };
+                                nfc.tgSetData(pack, 2);
                             } else if (cmd == 0x50) { // HALT
                                 // Do nothing
                             }
@@ -440,14 +564,18 @@ void loop() {
                                 if (rxLen == 8) {
                                     // 6. Verify and send aT (encrypted answer)
                                     uint32_t nr_enc = rxBuffer[0] | (rxBuffer[1] << 8) | (rxBuffer[2] << 16) | (rxBuffer[3] << 24);
+                                    uint32_t ar_enc = rxBuffer[4] | (rxBuffer[5] << 8) | (rxBuffer[6] << 16) | (rxBuffer[7] << 24);
                                     
                                     // Feed the encrypted reader nonce into the cipher
                                     crypto1_word(&crypto1, nr_enc, 1);
                                     
+                                    // Advance cipher state by decrypting the reader answer (aR)
+                                    crypto1_word(&crypto1, ar_enc, 0);
+                                    
                                     isAuthenticated = true;
                                     
-                                    // Calculate Tag Answer (aT) - placeholder for PRNG successor
-                                    uint32_t at_plain = 0xdeadbeef; 
+                                    // Calculate Tag Answer (aT) - PRNG successor of nT shifted 64 times
+                                    uint32_t at_plain = prng_successor(nt_val, 64); 
                                     uint32_t at_enc = crypto1_word(&crypto1, at_plain, 0);
                                     
                                     uint8_t aT[4] = { (uint8_t)(at_enc & 0xFF), (uint8_t)((at_enc >> 8) & 0xFF), (uint8_t)((at_enc >> 16) & 0xFF), (uint8_t)((at_enc >> 24) & 0xFF) };
@@ -468,13 +596,19 @@ void loop() {
                     }
         }
     } else if (isEmulating125) {
-        // Modulate the 125kHz carrier here
-        // E.g., Amplitude Shift Keying (ASK) for HID Prox:
-        // ledcWrite(0, 128); // Carrier ON
-        // delayMicroseconds(XX);
-        // ledcWrite(0, 0);   // Carrier OFF
-        // delayMicroseconds(YY);
-        // (Modulation logic goes here based on currentUidString)
+        // 1. Preamble (11 zeroes, 34 ones)
+        for (int i=0; i<11; i++) playFSKBit(0);
+        for (int i=0; i<34; i++) playFSKBit(1);
+        
+        // 2. Wiegand Payload
+        // Parse hex string to 64-bit integer
+        uint64_t payload = strtoull(currentUidString.c_str(), NULL, 16);
+        
+        // 3. Stream bits (assuming standard 26-bit HID Prox)
+        for (int i = 25; i >= 0; i--) {
+            bool b = (payload >> i) & 1;
+            playFSKBit(b);
+        }
     }
     
     delay(10);

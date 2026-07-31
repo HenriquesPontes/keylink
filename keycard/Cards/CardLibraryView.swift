@@ -1,12 +1,14 @@
 import SwiftUI
 import SwiftData
+import UniformTypeIdentifiers
 
 struct CardLibraryView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Card.createdAt, order: .reverse) private var cards: [Card]
+    @Query(sort: \Card.orderIndex, order: .forward) private var cards: [Card]
     
     @State private var showImport = false
     @State private var selectedCard: Card?
+    @State private var draggedCard: Card?
     @State private var showSettings = false
     
     @State private var searchText = ""
@@ -67,14 +69,11 @@ struct CardLibraryView: View {
                                 .onTapGesture {
                                     selectedCard = card
                                 }
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        deleteCard(card)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
+                                .onDrag {
+                                    self.draggedCard = card
+                                    return NSItemProvider(object: card.id.uuidString as NSString)
                                 }
-                                .zIndex(zIndex(for: card))
+                                .onDrop(of: [UTType.text], delegate: CardDropDelegate(item: card, items: cards, draggedItem: $draggedCard, modelContext: modelContext))
                         }
                     }
                     .padding(.horizontal)
@@ -132,9 +131,39 @@ struct CardLibraryView: View {
         modelContext.delete(card)
         try? modelContext.save()
     }
-    
-    private func zIndex(for card: Card) -> Double {
-        Double(-(cards.firstIndex(where: { $0.id == card.id }) ?? 0))
-    }
 }
 
+struct CardDropDelegate: DropDelegate {
+    let item: Card
+    let items: [Card]
+    @Binding var draggedItem: Card?
+    let modelContext: ModelContext
+    
+    func performDrop(info: DropInfo) -> Bool {
+        draggedItem = nil
+        return true
+    }
+    
+    func dropEntered(info: DropInfo) {
+        guard let draggedItem = draggedItem,
+              draggedItem.id != item.id,
+              let from = items.firstIndex(where: { $0.id == draggedItem.id }),
+              let to = items.firstIndex(where: { $0.id == item.id }) else {
+            return
+        }
+        
+        if from != to {
+            withAnimation {
+                var updatedItems = items
+                let movedItem = updatedItems.remove(at: from)
+                updatedItems.insert(movedItem, at: to)
+                
+                for (index, card) in updatedItems.enumerated() {
+                    card.orderIndex = index
+                }
+                
+                try? modelContext.save()
+            }
+        }
+    }
+}

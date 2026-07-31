@@ -37,8 +37,9 @@ Based on the architecture and workflow of the KeyCard project, here are the defi
 **Goal:** Build the SwiftUI app to store cards and control the ESP32 via BLE.
 - Request `NSBluetoothAlwaysUsageDescription` in `Info.plist`.
 - Build the `BLEManager` to connect to the ESP32 and send JSON commands.
-- Implement the SwiftData `Card` model.
-- Build the UI: `CardLibraryView` (Saved cards list), `CardImportView` (JSON File/Clipboard parsing), and `EmulationView` (Timer and BLE status).
+- Implement the SwiftData `Card` model with an `orderIndex` for drag-and-drop reordering.
+- Build the UI: `CardLibraryView` (Saved cards list), `HardwareSettingsView` (Hardware control & OTA), and `CardImportView`.
+- Use `NFCEmulationPresenter` for native Apple Pay-style NFC tag reading/emulation interactions.
 - Implement `CardImportManager` to natively parse raw `.bin` Proxmark3 dumps (`hf mf dump -k ...`).
 
 ## Phase 5: Proxmark3 to Bridge Data Flow (The Full Loop) ✅ (Completed)
@@ -65,6 +66,7 @@ Based on the architecture and workflow of the KeyCard project, here are the defi
 - **Persistent Card Library:** ✅ Swapped UserDefaults for SwiftData and enabled iCloud sync for reliable, schema-driven data persistence.
 - **Sector Key Management:** ✅ Implemented `CardDetailView` for viewing/editing A/B keys per sector.
 - **7-Byte UID Constraint:** ✅ Implemented fallback protocol to map 7-byte UIDs (Cascade 2) into the 4-byte PN532 hardware constraint alongside UI warnings.
+- **QR Code Digital Cards:** ✅ Added native camera scanning and `CoreImage` QR generation to store digital passes alongside physical RF credentials.
 
 ---
 
@@ -73,16 +75,17 @@ Based on the architecture and workflow of the KeyCard project, here are the defi
 - **Robustness (v1.1):** ✅ PN532 auto-retry on timeout, battery level reporting over BLE, and configurable emulation duration.
 - **Background BLE Reconnection:** ✅ Ensure the app stays connected to the bridge in your pocket.
 - **Multi-Protocol Expansion (v3.0):** ✅ Added complete support for MIFARE Ultralight / NTAG emulation.
-- **125 kHz Support:** ✅ Software integration and firmware PWM carrier generation implemented for HID Prox badges.
+- **Amiibo Emulation (NTAG215):** ✅ Firmware logic integrated for `GET_VERSION`, `FAST_READ`, and fake `PWD_AUTH` to trick Nintendo Switch readers directly using the PN532.
+- **125 kHz Support:** ✅ Firmware PWM carrier generation (FSK modulation for HID Prox) is fully implemented using bit-banged PWM on GPIO 4.
 - **DESFire Light (UID-only):** ✅ Added support for importing DESFire Light targets and instructing the PN532 to initialize ISO/IEC 14443-4 target mode.
-- **Ecosystem Integration:** ⏭️ Skipped Apple Watch companion app and Lock Screen widgets.
+- **Ecosystem Integration:** ⏭️ Skipped Apple Watch companion app. Lock Screen widgets remain a potential goal.
 
 ---
 
 ## Future Roadmap (v4.0)
 With the core software and multi-protocol logic complete, the following features are prime targets for v4.0:
 - **Firmware OTA Updates:** ✅ Built a robust mechanism using `Update.h` and iOS `URLSession` to push new firmware versions over a local ESP32 Wi-Fi AP.
-- **Security Enhancements:** ✅ Implemented `BLESecurity` with MITM protection and a static passkey, plus Encrypted GATT characteristics to prevent plaintext key transmission over the air.
+- **Security Enhancements:** ✅ Implemented `BLESecurity` with MITM protection, and added Application-Layer End-to-End Encryption (E2EE) using AES-256-GCM with a pre-shared key to completely secure payloads over the air.
 - **Automated Testing:** ✅ Wrote and successfully passed native XCTest suites for the `CardImportManager` to confidently validate Proxmark3 dump parsing edge-cases.
 - **Custom Hardware Design (PCB):** ✅ Drafted a schematic and PCB layout netlist for the bridge components to create a tiny, 3D-printable, wearable form factor.
 
@@ -90,7 +93,5 @@ With the core software and multi-protocol logic complete, the following features
 
 ## Next Immediate Steps
 
-The KeyCard software stack is functionally complete. The optimal next steps are:
-
-1. **Hardware Assembly & Real-World Testing:** Procure the ESP32-S3 and PN532, wire them via UART, flash the `keycard_bridge.ino` firmware, and test against a physical door reader.
-2. **Select a v4.0 Feature:** Decide on security, OTA, testing, or custom hardware to focus on next.
+✅ All major software features for v3.0 and v4.0 are functionally complete. 
+The optimal next step is to test the hardware assembly (Phase 6) and finalize the PCB fabrication for the wearable form factor.

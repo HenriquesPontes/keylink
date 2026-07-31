@@ -80,9 +80,15 @@ struct CardRow: View {
         case .mifareUltralight:
             // Purple gradient for Mifare Ultralight
             return [Color(hex: "BB80E0") ?? .purple, Color(hex: "7030A0") ?? .purple]
-        case .desfireLight:
+        case .desfireLight, .desfire:
             // Green/Teal gradient for Desfire
             return [Color(hex: "006241") ?? .green, Color(hex: "1E3932") ?? .green]
+        case .iClass:
+            // Orange/Yellow gradient for iCLASS
+            return [Color(hex: "FF8C00") ?? .orange, Color(hex: "B8860B") ?? .yellow]
+        case .qrCode:
+            // High contrast Black/White for QR Code
+            return [Color.black, Color.gray]
         }
     }
     
@@ -94,8 +100,12 @@ struct CardRow: View {
             return "sensor.tag.radiowaves.forward"
         case .mifareUltralight:
             return "bolt.horizontal.circle.fill"
-        case .desfireLight:
+        case .desfireLight, .desfire:
             return "lock.shield.fill"
+        case .iClass:
+            return "antenna.radiowaves.left.and.right"
+        case .qrCode:
+            return "qrcode"
         }
     }
 }

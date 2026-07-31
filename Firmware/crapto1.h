@@ -12,5 +12,6 @@ void crypto1_init(struct crypto1_state *state, uint64_t key);
 uint8_t crypto1_bit(struct crypto1_state *state, uint8_t in, int is_encrypted);
 uint8_t crypto1_byte(struct crypto1_state *state, uint8_t in, int is_encrypted);
 uint32_t crypto1_word(struct crypto1_state *state, uint32_t in, int is_encrypted);
+uint32_t prng_successor(uint32_t x, uint32_t n);
 
 #endif

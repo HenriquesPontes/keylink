@@ -22,6 +22,15 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section("Hardware") {
+                    NavigationLink(destination: HardwareSettingsView()) {
+                        HStack {
+                            Image(systemName: "cpu")
+                            Text("KeyCard Bridge Settings")
+                        }
+                    }
+                }
+                
                 Section {
                     Button(role: .destructive) {
                         // TODO: Reset app data logic

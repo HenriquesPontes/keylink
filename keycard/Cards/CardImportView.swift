@@ -20,6 +20,8 @@ struct CardImportView: View {
     // NFC Reader
     @State private var nfcReader = NFCReaderManager()
     
+    // QR Scanner
+    @State private var showScanner = false
 
     var onImport: ((Card) -> Void)?
     
@@ -118,6 +120,28 @@ struct CardImportView: View {
                                 Text("Manual Entry (125kHz)")
                                     .font(.headline)
                                 Text("Enter Facility Code & Card Number")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
+                    
+                    Button {
+                        showScanner = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "qrcode.viewfinder")
+                                .font(.title2)
+                            VStack(alignment: .leading) {
+                                Text("Scan QR Code")
+                                    .font(.headline)
+                                Text("Use camera to scan digital pass")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -256,7 +280,13 @@ struct CardImportView: View {
             } message: {
                 Text("Enter the Facility Code and Card Number found on the back of the HID Prox badge.")
             }
-
+            .sheet(isPresented: $showScanner) {
+                ScannerView { payload in
+                    showScanner = false
+                    importedCard = Card(name: "QR Code Pass", type: .qrCode, qrPayload: payload)
+                    cardName = importedCard?.name ?? ""
+                }
+            }
         }
     }
 }

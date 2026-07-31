@@ -41,3 +41,10 @@ uint32_t crypto1_word(struct crypto1_state *state, uint32_t in, int is_encrypted
     }
     return out;
 }
+
+uint32_t prng_successor(uint32_t x, uint32_t n) {
+    for (uint32_t i = 0; i < n; i++) {
+        x = (x >> 1) | ((((x >> 16) ^ (x >> 18) ^ (x >> 19) ^ (x >> 21)) & 1) << 31);
+    }
+    return x;
+}

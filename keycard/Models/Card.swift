@@ -6,6 +6,9 @@ enum CardType: String, Codable {
     case hidProx26
     case mifareUltralight
     case desfireLight
+    case desfire
+    case iClass
+    case qrCode
 }
 
 @Model
@@ -22,12 +25,17 @@ final class Card {
     var type: CardType = CardType.mifareClassic
     var facilityCode: Int?
     var cardNumber: Int?
+    var qrPayload: String?
+    
+    // DESFire specific
+    var desfireData: String? // Raw .eml file content
     
     @Attribute(.externalStorage) var imageData: Data?
     
     var createdAt: Date = Date()
+    var orderIndex: Int = 0
     
-    init(name: String, type: CardType = .mifareClassic, uid: String = "", atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil, pages: [[UInt8]]? = nil, facilityCode: Int? = nil, cardNumber: Int? = nil, imageData: Data? = nil) {
+    init(name: String, type: CardType = .mifareClassic, uid: String = "", atqa: [UInt8] = [0x00, 0x04], sak: UInt8 = 0x08, sectors: [[UInt8]]? = nil, pages: [[UInt8]]? = nil, facilityCode: Int? = nil, cardNumber: Int? = nil, qrPayload: String? = nil, imageData: Data? = nil, orderIndex: Int = 0) {
         self.id = UUID()
         self.name = name
         self.type = type
@@ -38,7 +46,10 @@ final class Card {
         self.pages = pages
         self.facilityCode = facilityCode
         self.cardNumber = cardNumber
+        self.qrPayload = qrPayload
+        self.desfireData = nil
         self.imageData = imageData
+        self.orderIndex = orderIndex
         self.createdAt = Date()
     }
     
@@ -57,6 +68,6 @@ final class Card {
     }
     
     var isFullClone: Bool {
-        sectors != nil || pages != nil
+        sectors != nil || pages != nil || desfireData != nil
     }
 }

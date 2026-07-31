@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		06ADC68F048A125B3B015D24 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CCA595605D7DF27C3829E36 /* Foundation.framework */; };
 		0FAB83333BF2BA99DE3F5030 /* keycardWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E606751ADC0C16CC65C609 /* keycardWidget.swift */; };
-		185742ADB91F7E46D0F9C4A6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BE4AF1907FC4070D709049 /* SettingsView.swift */; };
 		6A85AB7592D9C8B2BB1167F9 /* EmulationAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECF0070C4B21870CE9B5C8F /* EmulationAttributes.swift */; };
 		74F92D40BB56AC95A5B30EBD /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 759D199C11DF3D23584B1061 /* SwiftUI.framework */; };
 		7856C7755D5A3D05579CD46F /* EmulationAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECF0070C4B21870CE9B5C8F /* EmulationAttributes.swift */; };
@@ -304,7 +303,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A85AB7592D9C8B2BB1167F9 /* EmulationAttributes.swift in Sources */,
-				185742ADB91F7E46D0F9C4A6 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,7 +384,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = keycard/keycard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20260730;
+				CURRENT_PROJECT_VERSION = 20260731;
 				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -427,7 +425,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = keycard/keycard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20260730;
+				CURRENT_PROJECT_VERSION = 20260731;
 				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

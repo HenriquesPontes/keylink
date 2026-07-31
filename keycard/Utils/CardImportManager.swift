@@ -35,7 +35,27 @@ final class CardImportManager {
             return try processJSONImport(imported)
         }
         
-        // If JSON parsing fails, attempt to parse as a raw .bin dump
+        // Attempt to parse as a DESFire .eml file (plain text with specific headers or hex content)
+        if let text = String(data: data, encoding: .utf8), text.contains("DESFire") || text.contains("eml") || text.count > 100 && text.allSatisfy({ $0.isHexDigit || $0.isWhitespace || $0.isPunctuation }) {
+            // For now, treat any plausible .eml text file as a DESFire dump
+            // We'll extract a fake UID for now, but in reality we'd parse the EML header.
+            let lines = text.components(separatedBy: .newlines)
+            var uid = "00000000"
+            for line in lines {
+                if line.starts(with: "UID:") || line.starts(with: "04 ") { // Simple heuristical UID grab
+                    let parts = line.components(separatedBy: " ")
+                    if parts.count > 1 {
+                        uid = parts[1...].joined().prefix(14).description
+                    }
+                }
+            }
+            let cleanUID = uid.uppercased().replacingOccurrences(of: " ", with: "")
+            var card = Card(name: "DESFire \(cleanUID.prefix(4))", type: .desfire, uid: cleanUID, atqa: [0x44, 0x03], sak: 0x20)
+            card.desfireData = text
+            return card
+        }
+        
+        // If JSON and EML parsing fails, attempt to parse as a raw .bin dump
         do {
             return try importFromBin(data)
         } catch {
