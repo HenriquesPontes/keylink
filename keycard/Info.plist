@@ -11,9 +11,5 @@
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
-	<key>NSFaceIDUsageDescription</key>
-	<string>KeyCard uses Face ID to securely authenticate card emulation.</string>
 </dict>
 </plist>

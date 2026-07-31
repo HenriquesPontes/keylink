@@ -366,7 +366,7 @@
 				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
 				INFOPLIST_FILE = keycardWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard.keycardWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard.app.keycardWidget;
 				PRODUCT_NAME = keycardWidget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -382,7 +382,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = keycard/keycard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20260730;
 				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -390,7 +390,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = KeyCard;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "KeyCard uses Bluetooth to connect to your NFC Bridge device.";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "KeyCard uses Face ID to securely authenticate and access your saved cards.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "KeyCard uses Face ID to securely authenticate card emulation.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -403,8 +403,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard;
+				MARKETING_VERSION = 1.5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -423,7 +423,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = keycard/keycard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20260730;
 				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -431,7 +431,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = KeyCard;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "KeyCard uses Bluetooth to connect to your NFC Bridge device.";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "KeyCard uses Face ID to securely authenticate and access your saved cards.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "KeyCard uses Face ID to securely authenticate card emulation.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -444,8 +444,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard;
+				MARKETING_VERSION = 1.5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -604,7 +604,7 @@
 				DEVELOPMENT_TEAM = RN6ZQ9XYA8;
 				INFOPLIST_FILE = keycardWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard.keycardWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.livlu.keycard.app.keycardWidget;
 				PRODUCT_NAME = keycardWidget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
