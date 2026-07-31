@@ -14,12 +14,12 @@ struct CardLibraryView: View {
                 if cards.isEmpty {
                     Section {
                         VStack(spacing: 12) {
-                            Image(systemName: "creditcard")
+                            Image(systemName: "square.dashed")
                                 .font(.system(size: 48))
                                 .foregroundColor(.secondary)
-                            Text("No Cards Yet")
+                            Text("No Cards")
                                 .font(.headline)
-                            Text("Import from Proxmark3 or add manually")
+                            Text("Tap the add button to scan or edit")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -37,13 +37,15 @@ struct CardLibraryView: View {
                     .onDelete(perform: deleteCards)
                 }
             }
-            .navigationTitle("KeyCard")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showImport = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "plus.circle.fill")
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.black, .white)
+                            .font(.title2)
                     }
                 }
             }

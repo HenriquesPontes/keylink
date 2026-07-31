@@ -17,6 +17,9 @@ struct CardImportView: View {
     @State private var manualFC: String = ""
     @State private var manualCN: String = ""
     
+    // Settings state
+    @State private var showSettings = false
+    
     var onImport: ((Card) -> Void)?
     
     var body: some View {
@@ -186,6 +189,13 @@ struct CardImportView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
             }
             .sheet(isPresented: $showDocumentPicker) {
                 DocumentPicker { url in
@@ -222,6 +232,9 @@ struct CardImportView: View {
                 }
             } message: {
                 Text("Enter the Facility Code and Card Number found on the back of the HID Prox badge.")
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
             }
         }
     }

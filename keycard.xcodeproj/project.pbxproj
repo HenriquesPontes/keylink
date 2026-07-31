@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		06ADC68F048A125B3B015D24 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CCA595605D7DF27C3829E36 /* Foundation.framework */; };
 		0FAB83333BF2BA99DE3F5030 /* keycardWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E606751ADC0C16CC65C609 /* keycardWidget.swift */; };
+		185742ADB91F7E46D0F9C4A6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BE4AF1907FC4070D709049 /* SettingsView.swift */; };
 		6A85AB7592D9C8B2BB1167F9 /* EmulationAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECF0070C4B21870CE9B5C8F /* EmulationAttributes.swift */; };
 		74F92D40BB56AC95A5B30EBD /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 759D199C11DF3D23584B1061 /* SwiftUI.framework */; };
 		7856C7755D5A3D05579CD46F /* EmulationAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECF0070C4B21870CE9B5C8F /* EmulationAttributes.swift */; };
@@ -60,13 +61,14 @@
 		759D199C11DF3D23584B1061 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/SwiftUI.framework; sourceTree = DEVELOPER_DIR; };
 		84DFD527301BD94E000615EC /* keycard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = keycard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CCA595605D7DF27C3829E36 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		B0BE4AF1907FC4070D709049 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = keycard/SettingsView.swift; sourceTree = SOURCE_ROOT; };
 		C3E606751ADC0C16CC65C609 /* keycardWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = keycardWidget.swift; sourceTree = "<group>"; };
 		C873E8B90DD5D1FD35DAD0B4 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FDBB0A16BF8C55B55C273C5F /* keycardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = keycardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		84DFD534301BD94F000615EC /* Exceptions for "keycard" folder in "keycard" target */ = {
+		84DFD534301BD94F000615EC = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -76,14 +78,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		84DFD529301BD94E000615EC /* keycard */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				84DFD534301BD94F000615EC /* Exceptions for "keycard" folder in "keycard" target */,
-			);
-			path = keycard;
-			sourceTree = "<group>";
-		};
+		84DFD529301BD94E000615EC /* keycard */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (84DFD534301BD94F000615EC, ); path = keycard; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,6 +138,7 @@
 				67B680431C559F9832F7A95D /* Frameworks */,
 				C1D7597CC9DF2049467397A8 /* keycardTests */,
 				E5095F324F31D86FCC208CAA /* keycardWidget */,
+				B0BE4AF1907FC4070D709049 /* SettingsView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -301,6 +297,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A85AB7592D9C8B2BB1167F9 /* EmulationAttributes.swift in Sources */,
+				185742ADB91F7E46D0F9C4A6 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
