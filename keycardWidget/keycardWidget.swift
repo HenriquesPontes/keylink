@@ -28,20 +28,12 @@ struct keycardWidgetLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 // Expanded UI
-                DynamicIslandExpandedRegion(.leading) {
-                    Label(context.attributes.cardName, systemImage: "wave.3.right.circle.fill")
-                        .font(.headline)
-                        .foregroundColor(.blue)
-                }
-                DynamicIslandExpandedRegion(.trailing) {
-                    Text("\(context.state.timeRemaining)s")
-                        .font(.system(.title2, design: .rounded).monospacedDigit())
-                        .foregroundColor(.blue)
-                }
-                DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.state.status)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                DynamicIslandExpandedRegion(.center) {
+                    Image("Dynamic Island")
+                        .resizable()
+                        .scaledToFit()
+                        // Negative padding or clipping to ensure it bleeds nicely if needed
+                        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                 }
             } compactLeading: {
                 Image(systemName: "wave.3.right.circle.fill")
