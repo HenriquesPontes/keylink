@@ -1,40 +1,52 @@
 import SwiftUI
 import ActivityKit
-import CoreNFC
 import Combine
 
-class NFCEmulationPresenter: NSObject, NFCTagReaderSessionDelegate, ObservableObject {
+class NFCEmulationPresenter: ObservableObject {
     @Published var isEmulating = false
-    var session: NFCTagReaderSession?
+    var currentActivity: Activity<EmulationAttributes>?
     
-    func showSystemNFCUI(message: String = "Hold Near Reader") {
-        if !NFCTagReaderSession.readingAvailable {
-            print("NFC reading is not available on this device (e.g., Simulator). System NFC UI cannot be shown.")
-            // On a real device, it will proceed.
+    func showSystemNFCUI(message: String = "Hold Near Reader", cardName: String = "KeyCard") {
+        if ActivityAuthorizationInfo().areActivitiesEnabled {
+            let attributes = EmulationAttributes(cardName: cardName)
+            let state = EmulationAttributes.ContentState(timeRemaining: 15, status: message)
+            
+            do {
+                if #available(iOS 16.2, *) {
+                    currentActivity = try Activity.request(
+                        attributes: attributes,
+                        content: .init(state: state, staleDate: nil),
+                        pushType: nil
+                    )
+                } else {
+                    currentActivity = try Activity.request(
+                        attributes: attributes,
+                        contentState: state,
+                        pushType: nil
+                    )
+                }
+            } catch {
+                print("Failed to request Live Activity: \(error.localizedDescription)")
+            }
+        } else {
+            print("Live Activities are not enabled on this device.")
         }
-        
-        session = NFCTagReaderSession(pollingOption: [.iso14443, .iso15693], delegate: self, queue: nil)
-        session?.alertMessage = message
-        session?.begin()
     }
     
     func stopSystemNFCUI(successMessage: String? = nil) {
-        if let msg = successMessage {
-            session?.alertMessage = msg
-            // Delay invalidation slightly so the user sees the success message
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                self.session?.invalidate()
-                self.session = nil
+        let finalStatus = successMessage ?? "Completed"
+        let state = EmulationAttributes.ContentState(timeRemaining: 0, status: finalStatus)
+        
+        Task {
+            if #available(iOS 16.2, *) {
+                await currentActivity?.end(
+                    ActivityContent(state: state, staleDate: nil),
+                    dismissalPolicy: .default
+                )
+            } else {
+                await currentActivity?.end(using: state, dismissalPolicy: .default)
             }
-        } else {
-            session?.invalidate()
-            session = nil
+            self.currentActivity = nil
         }
     }
-    
-    func tagReaderSessionDidBecomeActive(_ session: NFCTagReaderSession) {}
-    func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
-        self.session = nil
-    }
-    func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {}
 }
